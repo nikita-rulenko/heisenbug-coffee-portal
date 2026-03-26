@@ -1,0 +1,18 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>Новости</h1>
+
+{{range .News}}
+<article class="news-item">
+    <h3>{{.Title}}</h3>
+    <p>{{.Content}}</p>
+    <p class="news-meta">{{.Author}} &mdash; {{.PublishedAt.Format "02.01.2006"}}</p>
+</article>
+{{end}}
+
+{{if not .News}}
+<p>Пока нет новостей</p>
+{{end}}
+
+<p><small>Всего новостей: {{.Total}}</small></p>
+{{end}}

@@ -1,0 +1,32 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1>Каталог</h1>
+
+<div class="category-nav">
+    <a href="/catalog" {{if eq .ActiveCategory 0}}class="active"{{end}}>Все</a>
+    {{range .Categories}}
+    <a href="/catalog?category={{.ID}}" {{if eq $.ActiveCategory .ID}}class="active"{{end}}>{{.Name}}</a>
+    {{end}}
+</div>
+
+<div class="product-grid" id="product-list">
+    {{range .Products}}
+    <div class="product-card">
+        <h3>{{.Name}}</h3>
+        <p class="desc">{{.Description}}</p>
+        <p class="price">{{printf "%.0f" .Price}} ₽</p>
+        <button hx-post="/api/v1/orders"
+                hx-vals='{"customer_id":"guest","items":[{"product_id":{{.ID}},"quantity":1}]}'
+                hx-swap="none"
+                hx-on::after-request="this.textContent='Добавлено!'; setTimeout(() => this.textContent='В корзину', 1500)">
+            В корзину
+        </button>
+    </div>
+    {{end}}
+    {{if not .Products}}
+    <p>Товары не найдены</p>
+    {{end}}
+</div>
+
+<p><small>Всего товаров: {{.Total}}</small></p>
+{{end}}

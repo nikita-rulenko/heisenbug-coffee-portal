@@ -1,0 +1,39 @@
+---
+description: Rules for writing and managing tests in Bean & Brew portal
+globs: ["**/*_test.go"]
+---
+
+# Testing Rules
+
+## Naming
+- Unit tests: `TestUnit<Entity><Method>` (e.g., `TestUnitProductValidate`)
+- Integration tests: `TestIntegration<Entity><Operation>` (e.g., `TestIntegrationProductCRUD`)
+- API tests: `TestAPI<Entity><Scenario>` (e.g., `TestAPIProductNotFound`)
+
+## Structure
+- Use table-driven tests with `t.Run()` for parameterized cases
+- Each test file lives next to the code it tests
+- Use `setupTestDB(t)` from `testhelper_test.go` for integration tests
+- Use `setupTestServer(t)` from `api_test.go` for API tests
+
+## Database
+- Always use `:memory:` SQLite for tests — never the real DB
+- Call `t.Cleanup()` to close DB connections
+- Each test gets its own DB instance — no shared state between tests
+
+## Assertions
+- Use standard `testing` package with `t.Errorf`/`t.Fatalf`
+- Compare errors with `errors.Is()` or direct comparison for sentinel errors
+- For collections, check `len()` before accessing elements
+
+## What to Test
+- Validation: every entity field constraint
+- Error paths: ErrNotFound, ErrInvalidStatus, validation errors
+- Pagination: page boundaries, empty results
+- Status transitions: valid and invalid state changes for orders
+
+## Anti-patterns to Avoid
+- No `time.Sleep()` in tests
+- No network calls in unit tests
+- No shared mutable state between parallel tests
+- Don't test Go stdlib behavior (e.g., JSON marshaling)
