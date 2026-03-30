@@ -1,0 +1,10 @@
+{{template "layout" .}}
+{{define "content"}}
+<div class="confirm-box">
+    <div class="check">✅</div>
+    <h1>Заказ принят!</h1>
+    <p style="color: var(--text-muted);">Номер заказа: <strong>#{{.OrderID}}</strong></p>
+    <p style="color: var(--text-muted); margin-top: 0.5rem;">Мы свяжемся с вами для подтверждения</p>
+    <a href="/catalog" class="btn btn-primary mt-2">Продолжить покупки</a>
+</div>
+{{end}}

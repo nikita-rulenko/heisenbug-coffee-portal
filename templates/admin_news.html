@@ -1,0 +1,46 @@
+{{template "layout" .}}
+{{define "content"}}
+<div class="admin-header">
+    <h1 class="section-title">Управление новостями</h1>
+</div>
+
+<div class="form-card" style="max-width:640px;">
+    <h2 style="font-size:1.1rem;margin-bottom:1rem;">Добавить новость</h2>
+    <form hx-post="/admin/news" hx-target="#news-list" hx-swap="afterbegin" hx-on::after-request="this.reset(); showToast('Новость добавлена!')">
+        <div class="form-group">
+            <label for="title">Заголовок</label>
+            <input type="text" id="title" name="title" required placeholder="Заголовок новости">
+        </div>
+        <div class="form-group">
+            <label for="content">Содержание</label>
+            <textarea id="content" name="content" required placeholder="Текст новости..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Опубликовать</button>
+    </form>
+</div>
+
+<h2 class="section-title mt-3">Все новости</h2>
+<ul id="news-list" class="admin-list">
+    {{range .News}}
+    <li class="admin-list-item" id="news-{{.ID}}">
+        <div>
+            <h4>{{.Title}}</h4>
+            <p>{{.Author}} — {{.PublishedAt.Format "02.01.2006"}}</p>
+        </div>
+        <button class="btn btn-danger btn-sm"
+                hx-delete="/admin/news/{{.ID}}"
+                hx-target="#news-{{.ID}}"
+                hx-swap="outerHTML"
+                hx-confirm="Удалить эту новость?">
+            Удалить
+        </button>
+    </li>
+    {{end}}
+</ul>
+
+{{if not .News}}
+<div class="empty-state">
+    <p>Новостей пока нет</p>
+</div>
+{{end}}
+{{end}}

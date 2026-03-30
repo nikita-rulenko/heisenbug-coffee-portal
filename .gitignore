@@ -1,3 +1,6 @@
 data/
 bin/
 *.db
+.env
+.DS_Store
+server

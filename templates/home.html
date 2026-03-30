@@ -1,46 +1,53 @@
 {{template "layout" .}}
 {{define "content"}}
 <section class="hero">
-    <h1>Bean & Brew</h1>
+    <h1>Bean &amp; Brew</h1>
     <p>Свежеобжаренный кофе и напитки ручной работы</p>
-    <div class="search-box" style="max-width:400px; margin: 1rem auto;">
+    <div class="search-wrapper">
         <input type="search"
                name="q"
                placeholder="Найти кофе..."
-               hx-get="/api/v1/products/search"
+               hx-get="/search"
                hx-trigger="input changed delay:300ms"
                hx-target="#search-results"
                hx-swap="innerHTML">
-        <div id="search-results"></div>
+        <div id="search-results" class="search-results"></div>
     </div>
 </section>
 
-<h2>Популярные товары</h2>
+<h2 class="section-title">Популярные товары</h2>
 <div class="product-grid">
     {{range .Products}}
     <div class="product-card">
-        <h3>{{.Name}}</h3>
-        <p class="desc">{{.Description}}</p>
-        <p class="price">{{printf "%.0f" .Price}} ₽</p>
-        <button hx-post="/api/v1/orders"
-                hx-vals='{"customer_id":"guest","items":[{"product_id":{{.ID}},"quantity":1}]}'
-                hx-swap="none"
-                hx-on::after-request="this.textContent='Добавлено!'; setTimeout(() => this.textContent='В корзину', 1500)">
-            В корзину
-        </button>
+        <div class="product-card-img">{{.ImageURL}}</div>
+        <div class="product-card-body">
+            <h3>{{.Name}}</h3>
+            <p class="desc">{{.Description}}</p>
+            <div class="product-card-footer">
+                <span class="price">{{printf "%.0f" .Price}} ₽</span>
+                <button class="btn btn-primary btn-sm"
+                        onclick="addToCart({{.ID}}, '{{.Name}}', {{.Price}}, '{{.ImageURL}}')">
+                    В корзину
+                </button>
+            </div>
+        </div>
     </div>
     {{end}}
 </div>
 
 {{if .News}}
-<h2>Последние новости</h2>
-{{range .News}}
-<article class="news-item">
-    <h3>{{.Title}}</h3>
-    <p>{{.Content}}</p>
-    <p class="news-meta">{{.Author}} &mdash; {{.PublishedAt.Format "02.01.2006"}}</p>
-</article>
-{{end}}
-<a href="/news">Все новости &rarr;</a>
+<h2 class="section-title mt-3">Последние новости</h2>
+<div class="news-grid">
+    {{range .News}}
+    <div class="news-card">
+        <h3>{{.Title}}</h3>
+        <p>{{.Content}}</p>
+        <p class="news-meta">{{.Author}} — {{.PublishedAt.Format "02.01.2006"}}</p>
+    </div>
+    {{end}}
+</div>
+<div class="text-center mt-2">
+    <a href="/news" class="btn btn-outline">Все новости →</a>
+</div>
 {{end}}
 {{end}}

@@ -1,0 +1,32 @@
+{{template "layout" .}}
+{{define "content"}}
+<h1 class="section-title">Корзина</h1>
+
+<div id="cart-content">
+    <div id="cart-empty" class="empty-state" style="display:none;">
+        <p>🛒 Корзина пуста</p>
+        <a href="/catalog" class="btn btn-primary mt-2">Перейти в каталог</a>
+    </div>
+
+    <div id="cart-items" style="display:none;">
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Товар</th>
+                    <th>Цена</th>
+                    <th>Количество</th>
+                    <th>Сумма</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="cart-tbody"></tbody>
+        </table>
+
+        <div class="cart-summary">
+            <p>Итого: <span id="cart-total" class="cart-total">0 ₽</span></p>
+            <a href="/checkout" class="btn btn-primary mt-1">Оформить заказ</a>
+        </div>
+    </div>
+</div>
+{{end}}

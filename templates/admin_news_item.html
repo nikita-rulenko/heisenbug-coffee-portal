@@ -1,0 +1,15 @@
+{{define "admin_news_item"}}
+<li class="admin-list-item" id="news-{{.ID}}">
+    <div>
+        <h4>{{.Title}}</h4>
+        <p>{{.Author}} — {{.PublishedAt.Format "02.01.2006"}}</p>
+    </div>
+    <button class="btn btn-danger btn-sm"
+            hx-delete="/admin/news/{{.ID}}"
+            hx-target="#news-{{.ID}}"
+            hx-swap="outerHTML"
+            hx-confirm="Удалить эту новость?">
+        Удалить
+    </button>
+</li>
+{{end}}

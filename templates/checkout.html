@@ -1,0 +1,24 @@
+{{template "layout" .}}
+{{define "content"}}
+<div class="form-card">
+    <h1>Оформление заказа</h1>
+    <form id="checkout-form" onsubmit="return submitCheckout(event)">
+        <div class="form-group">
+            <label for="name">Ваше имя</label>
+            <input type="text" id="name" name="name" required value="{{.Username}}" placeholder="Как к вам обращаться?">
+        </div>
+        <div class="form-group">
+            <label for="phone">Телефон</label>
+            <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__">
+        </div>
+        <div class="form-group">
+            <label for="comment">Комментарий</label>
+            <textarea id="comment" name="comment" placeholder="Особые пожелания к заказу..."></textarea>
+        </div>
+        <div class="cart-summary mb-2">
+            <p>К оплате: <span id="checkout-total" class="cart-total">0 ₽</span></p>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Подтвердить заказ</button>
+    </form>
+</div>
+{{end}}

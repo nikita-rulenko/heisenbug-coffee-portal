@@ -1,18 +1,22 @@
 {{template "layout" .}}
 {{define "content"}}
-<h1>Новости</h1>
+<h1 class="section-title">Новости</h1>
 
-{{range .News}}
-<article class="news-item">
-    <h3>{{.Title}}</h3>
-    <p>{{.Content}}</p>
-    <p class="news-meta">{{.Author}} &mdash; {{.PublishedAt.Format "02.01.2006"}}</p>
-</article>
-{{end}}
+<div class="news-grid">
+    {{range .News}}
+    <div class="news-card">
+        <h3>{{.Title}}</h3>
+        <p>{{.Content}}</p>
+        <p class="news-meta">{{.Author}} — {{.PublishedAt.Format "02.01.2006"}}</p>
+    </div>
+    {{end}}
+</div>
 
 {{if not .News}}
-<p>Пока нет новостей</p>
+<div class="empty-state">
+    <p>Пока нет новостей</p>
+</div>
 {{end}}
 
-<p><small>Всего новостей: {{.Total}}</small></p>
+<p class="text-center mt-2" style="color: var(--text-muted); font-size: 0.85rem;">Всего новостей: {{.Total}}</p>
 {{end}}

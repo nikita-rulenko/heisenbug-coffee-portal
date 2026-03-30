@@ -57,10 +57,26 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Compress(5))
+	r.Use(handler.AuthMiddleware)
 
 	r.Get("/", pageH.Home)
 	r.Get("/catalog", pageH.Catalog)
 	r.Get("/news", pageH.NewsFeed)
+	r.Get("/cart", pageH.Cart)
+	r.Get("/checkout", pageH.Checkout)
+	r.Get("/order/{id}", pageH.OrderConfirmation)
+	r.Get("/search", pageH.SearchFragment)
+
+	r.Get("/login", pageH.LoginPage)
+	r.Post("/login", pageH.LoginSubmit)
+	r.Get("/logout", pageH.Logout)
+
+	r.Route("/admin", func(r chi.Router) {
+		r.Use(handler.AdminOnly)
+		r.Get("/news", pageH.AdminNews)
+		r.Post("/news", pageH.AdminNewsCreate)
+		r.Delete("/news/{id}", pageH.AdminNewsDelete)
+	})
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Mount("/products", productH.Routes())

@@ -1,6 +1,6 @@
 {{template "layout" .}}
 {{define "content"}}
-<h1>Каталог</h1>
+<h1 class="section-title">Каталог</h1>
 
 <div class="category-nav">
     <a href="/catalog" {{if eq .ActiveCategory 0}}class="active"{{end}}>Все</a>
@@ -12,21 +12,26 @@
 <div class="product-grid" id="product-list">
     {{range .Products}}
     <div class="product-card">
-        <h3>{{.Name}}</h3>
-        <p class="desc">{{.Description}}</p>
-        <p class="price">{{printf "%.0f" .Price}} ₽</p>
-        <button hx-post="/api/v1/orders"
-                hx-vals='{"customer_id":"guest","items":[{"product_id":{{.ID}},"quantity":1}]}'
-                hx-swap="none"
-                hx-on::after-request="this.textContent='Добавлено!'; setTimeout(() => this.textContent='В корзину', 1500)">
-            В корзину
-        </button>
+        <div class="product-card-img">{{.ImageURL}}</div>
+        <div class="product-card-body">
+            <h3>{{.Name}}</h3>
+            <p class="desc">{{.Description}}</p>
+            <div class="product-card-footer">
+                <span class="price">{{printf "%.0f" .Price}} ₽</span>
+                <button class="btn btn-primary btn-sm"
+                        onclick="addToCart({{.ID}}, '{{.Name}}', {{.Price}}, '{{.ImageURL}}')">
+                    В корзину
+                </button>
+            </div>
+        </div>
     </div>
     {{end}}
     {{if not .Products}}
-    <p>Товары не найдены</p>
+    <div class="empty-state">
+        <p>Товары не найдены</p>
+    </div>
     {{end}}
 </div>
 
-<p><small>Всего товаров: {{.Total}}</small></p>
+<p class="text-center mt-2" style="color: var(--text-muted); font-size: 0.85rem;">Всего товаров: {{.Total}}</p>
 {{end}}
