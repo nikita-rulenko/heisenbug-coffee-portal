@@ -14,7 +14,7 @@ type PageHandler struct {
 	products   *usecase.ProductUseCase
 	categories *usecase.CategoryUseCase
 	news       *usecase.NewsUseCase
-	tmpl       *template.Template
+	templates  map[string]*template.Template
 }
 
 func NewPageHandler(
@@ -23,12 +23,40 @@ func NewPageHandler(
 	news *usecase.NewsUseCase,
 	templateDir string,
 ) *PageHandler {
-	tmpl := template.Must(template.ParseGlob(filepath.Join(templateDir, "*.html")))
+	layout := filepath.Join(templateDir, "layout.html")
+	partials := []string{
+		filepath.Join(templateDir, "search_results.html"),
+		filepath.Join(templateDir, "admin_news_item.html"),
+	}
+
+	pages := []string{
+		"home.html", "catalog.html", "news.html",
+		"cart.html", "checkout.html", "order_confirmed.html",
+		"login.html", "admin_news.html",
+	}
+
+	templates := make(map[string]*template.Template)
+	for _, page := range pages {
+		files := append([]string{layout, filepath.Join(templateDir, page)}, partials...)
+		templates[page] = template.Must(template.ParseFiles(files...))
+	}
+
 	return &PageHandler{
 		products:   products,
 		categories: categories,
 		news:       news,
-		tmpl:       tmpl,
+		templates:  templates,
+	}
+}
+
+func (h *PageHandler) render(w http.ResponseWriter, page string, data map[string]any) {
+	tmpl, ok := h.templates[page]
+	if !ok {
+		http.Error(w, "template not found", http.StatusInternalServerError)
+		return
+	}
+	if err := tmpl.ExecuteTemplate(w, "layout", data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -49,7 +77,7 @@ func (h *PageHandler) Home(w http.ResponseWriter, r *http.Request) {
 	newsItems, _, _ := h.news.List(r.Context(), 1, 3)
 	categories, _ := h.categories.List(r.Context())
 
-	h.tmpl.ExecuteTemplate(w, "home.html", h.pageData(r, "Bean & Brew — Кофейный магазин", map[string]any{
+	h.render(w, "home.html", h.pageData(r, "Bean & Brew — Кофейный магазин", map[string]any{
 		"Products":   products,
 		"News":       newsItems,
 		"Categories": categories,
@@ -63,7 +91,7 @@ func (h *PageHandler) Catalog(w http.ResponseWriter, r *http.Request) {
 	products, total, _ := h.products.List(r.Context(), catID, page, 12)
 	categories, _ := h.categories.List(r.Context())
 
-	h.tmpl.ExecuteTemplate(w, "catalog.html", h.pageData(r, "Каталог — Bean & Brew", map[string]any{
+	h.render(w, "catalog.html", h.pageData(r, "Каталог — Bean & Brew", map[string]any{
 		"Products":       products,
 		"Categories":     categories,
 		"Total":          total,
@@ -76,7 +104,7 @@ func (h *PageHandler) NewsFeed(w http.ResponseWriter, r *http.Request) {
 	page := queryInt(r, "page", 1)
 	items, total, _ := h.news.List(r.Context(), page, 10)
 
-	h.tmpl.ExecuteTemplate(w, "news.html", h.pageData(r, "Новости — Bean & Brew", map[string]any{
+	h.render(w, "news.html", h.pageData(r, "Новости — Bean & Brew", map[string]any{
 		"News":  items,
 		"Total": total,
 		"Page":  page,
@@ -84,16 +112,16 @@ func (h *PageHandler) NewsFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PageHandler) Cart(w http.ResponseWriter, r *http.Request) {
-	h.tmpl.ExecuteTemplate(w, "cart.html", h.pageData(r, "Корзина — Bean & Brew", nil))
+	h.render(w, "cart.html", h.pageData(r, "Корзина — Bean & Brew", nil))
 }
 
 func (h *PageHandler) Checkout(w http.ResponseWriter, r *http.Request) {
-	h.tmpl.ExecuteTemplate(w, "checkout.html", h.pageData(r, "Оформление — Bean & Brew", nil))
+	h.render(w, "checkout.html", h.pageData(r, "Оформление — Bean & Brew", nil))
 }
 
 func (h *PageHandler) OrderConfirmation(w http.ResponseWriter, r *http.Request) {
 	orderID := chi.URLParam(r, "id")
-	h.tmpl.ExecuteTemplate(w, "order_confirmed.html", h.pageData(r, "Заказ принят — Bean & Brew", map[string]any{
+	h.render(w, "order_confirmed.html", h.pageData(r, "Заказ принят — Bean & Brew", map[string]any{
 		"OrderID": orderID,
 	}))
 }
@@ -106,14 +134,14 @@ func (h *PageHandler) SearchFragment(w http.ResponseWriter, r *http.Request) {
 	}
 	products, _ := h.products.Search(r.Context(), q, 8)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	h.tmpl.ExecuteTemplate(w, "search_results", map[string]any{
+	h.templates["home.html"].ExecuteTemplate(w, "search_results", map[string]any{
 		"Products": products,
 	})
 }
 
 func (h *PageHandler) AdminNews(w http.ResponseWriter, r *http.Request) {
 	items, total, _ := h.news.List(r.Context(), 1, 100)
-	h.tmpl.ExecuteTemplate(w, "admin_news.html", h.pageData(r, "Админка новостей — Bean & Brew", map[string]any{
+	h.render(w, "admin_news.html", h.pageData(r, "Админка новостей — Bean & Brew", map[string]any{
 		"News":  items,
 		"Total": total,
 	}))
@@ -138,7 +166,7 @@ func (h *PageHandler) AdminNewsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	h.tmpl.ExecuteTemplate(w, "admin_news_item", item)
+	h.templates["admin_news.html"].ExecuteTemplate(w, "admin_news_item", item)
 }
 
 func (h *PageHandler) AdminNewsDelete(w http.ResponseWriter, r *http.Request) {
@@ -149,4 +177,48 @@ func (h *PageHandler) AdminNewsDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	h.news.Delete(r.Context(), id)
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *PageHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
+	h.render(w, "login.html", h.pageData(r, "Вход — Bean & Brew", map[string]any{}))
+}
+
+func (h *PageHandler) LoginSubmit(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	if username == "" {
+		h.render(w, "login.html", h.pageData(r, "Вход — Bean & Brew", map[string]any{
+			"Error": "Введите имя пользователя",
+		}))
+		return
+	}
+
+	if username == adminUser && password != adminPass {
+		h.render(w, "login.html", h.pageData(r, "Вход — Bean & Brew", map[string]any{
+			"Error": "Неверный пароль для админа",
+		}))
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     cookieName,
+		Value:    username,
+		Path:     "/",
+		MaxAge:   86400,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (h *PageHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:   cookieName,
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
