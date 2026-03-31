@@ -60,6 +60,72 @@ func TestUnitOrderValidate(t *testing.T) {
 			},
 			wantErr: entity.ErrInvalidProduct,
 		},
+		{
+			name: "negative product ID",
+			order: entity.Order{
+				CustomerID: "cust-1",
+				Items:      []entity.OrderItem{{ProductID: -5, Quantity: 1}},
+			},
+			wantErr: entity.ErrInvalidProduct,
+		},
+		{
+			name: "nil items",
+			order: entity.Order{
+				CustomerID: "cust-1",
+				Items:      nil,
+			},
+			wantErr: entity.ErrEmptyOrder,
+		},
+		{
+			name: "multiple valid items",
+			order: entity.Order{
+				CustomerID: "cust-1",
+				Items: []entity.OrderItem{
+					{ProductID: 1, Quantity: 2},
+					{ProductID: 2, Quantity: 3},
+					{ProductID: 3, Quantity: 1},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "second item invalid quantity",
+			order: entity.Order{
+				CustomerID: "cust-1",
+				Items: []entity.OrderItem{
+					{ProductID: 1, Quantity: 2},
+					{ProductID: 2, Quantity: 0},
+				},
+			},
+			wantErr: entity.ErrInvalidQuantity,
+		},
+		{
+			name: "second item invalid product",
+			order: entity.Order{
+				CustomerID: "cust-1",
+				Items: []entity.OrderItem{
+					{ProductID: 1, Quantity: 1},
+					{ProductID: 0, Quantity: 1},
+				},
+			},
+			wantErr: entity.ErrInvalidProduct,
+		},
+		{
+			name: "large quantity",
+			order: entity.Order{
+				CustomerID: "cust-1",
+				Items:      []entity.OrderItem{{ProductID: 1, Quantity: 10000}},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "unicode customer ID",
+			order: entity.Order{
+				CustomerID: "клиент-42",
+				Items:      []entity.OrderItem{{ProductID: 1, Quantity: 1}},
+			},
+			wantErr: nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -99,6 +165,39 @@ func TestUnitOrderCalculateTotalEmpty(t *testing.T) {
 	}
 }
 
+func TestUnitOrderCalculateTotalSingleItem(t *testing.T) {
+	o := entity.Order{
+		Items: []entity.OrderItem{{Price: 500, Quantity: 1}},
+	}
+	if got := o.CalculateTotal(); got != 500 {
+		t.Errorf("CalculateTotal() = %v, want 500", got)
+	}
+}
+
+func TestUnitOrderCalculateTotalLargeOrder(t *testing.T) {
+	items := make([]entity.OrderItem, 50)
+	for i := range items {
+		items[i] = entity.OrderItem{Price: 100, Quantity: 2}
+	}
+	o := entity.Order{Items: items}
+	if got := o.CalculateTotal(); got != 10000 {
+		t.Errorf("CalculateTotal() = %v, want 10000", got)
+	}
+}
+
+func TestUnitOrderCalculateTotalFloatPrecision(t *testing.T) {
+	o := entity.Order{
+		Items: []entity.OrderItem{
+			{Price: 0.1, Quantity: 10},
+			{Price: 0.2, Quantity: 5},
+		},
+	}
+	got := o.CalculateTotal()
+	if got < 1.9 || got > 2.1 {
+		t.Errorf("CalculateTotal() = %v, want ~2.0", got)
+	}
+}
+
 func TestUnitOrderCanCancel(t *testing.T) {
 	tests := []struct {
 		status entity.OrderStatus
@@ -132,5 +231,43 @@ func TestUnitOrderCanComplete(t *testing.T) {
 		if got := o.CanComplete(); got != tt.want {
 			t.Errorf("CanComplete() with status %q = %v, want %v", tt.status, got, tt.want)
 		}
+	}
+}
+
+func TestUnitOrderCanCancelUnknownStatus(t *testing.T) {
+	o := entity.Order{Status: "unknown"}
+	if o.CanCancel() {
+		t.Error("CanCancel() with unknown status should be false")
+	}
+}
+
+func TestUnitOrderCanCompleteUnknownStatus(t *testing.T) {
+	o := entity.Order{Status: "unknown"}
+	if o.CanComplete() {
+		t.Error("CanComplete() with unknown status should be false")
+	}
+}
+
+func TestUnitOrderValidatePriorityCustomerFirst(t *testing.T) {
+	o := entity.Order{
+		CustomerID: "",
+		Items:      nil,
+	}
+	if err := o.Validate(); err != entity.ErrEmptyCustomerID {
+		t.Errorf("expected ErrEmptyCustomerID first, got %v", err)
+	}
+}
+
+func TestUnitOrderCalculateTotalSetsField(t *testing.T) {
+	o := entity.Order{
+		Total: 999, // pre-existing value
+		Items: []entity.OrderItem{{Price: 100, Quantity: 1}},
+	}
+	got := o.CalculateTotal()
+	if got != 100 {
+		t.Errorf("CalculateTotal() = %v, want 100", got)
+	}
+	if o.Total != 100 {
+		t.Errorf("Total field not updated: %v", o.Total)
 	}
 }

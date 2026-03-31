@@ -1,6 +1,7 @@
 package entity_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/nikita-rulenko/heisenbug-portal/internal/entity"
@@ -26,6 +27,41 @@ func TestUnitNewsItemValidate(t *testing.T) {
 			name:    "empty content",
 			news:    entity.NewsItem{Title: "Заголовок", Content: ""},
 			wantErr: entity.ErrEmptyContent,
+		},
+		{
+			name:    "both empty",
+			news:    entity.NewsItem{Title: "", Content: ""},
+			wantErr: entity.ErrEmptyName, // title checked first
+		},
+		{
+			name:    "unicode title",
+			news:    entity.NewsItem{Title: "新メニュー", Content: "New items"},
+			wantErr: nil,
+		},
+		{
+			name:    "whitespace title is valid",
+			news:    entity.NewsItem{Title: "  ", Content: "Content"},
+			wantErr: nil,
+		},
+		{
+			name:    "long title",
+			news:    entity.NewsItem{Title: strings.Repeat("A", 500), Content: "Content"},
+			wantErr: nil,
+		},
+		{
+			name:    "long content",
+			news:    entity.NewsItem{Title: "Title", Content: strings.Repeat("Текст ", 1000)},
+			wantErr: nil,
+		},
+		{
+			name:    "with author",
+			news:    entity.NewsItem{Title: "Тест", Content: "Контент", Author: "Админ"},
+			wantErr: nil,
+		},
+		{
+			name:    "empty author is valid",
+			news:    entity.NewsItem{Title: "Тест", Content: "Контент", Author: ""},
+			wantErr: nil,
 		},
 	}
 
@@ -53,6 +89,7 @@ func TestUnitNewsItemSummary(t *testing.T) {
 		{"very short", 5, "Эт..."},
 		{"tiny maxLen", 3, "Это"},
 		{"exact length", contentRunes, n.Content},
+		{"one less than length", contentRunes - 1, string([]rune(n.Content)[:contentRunes-4]) + "..."},
 	}
 
 	for _, tt := range tests {
@@ -62,6 +99,54 @@ func TestUnitNewsItemSummary(t *testing.T) {
 				t.Errorf("Summary(%d) = %q, want %q", tt.maxRunes, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestUnitNewsItemSummaryEmptyContent(t *testing.T) {
+	n := entity.NewsItem{Content: ""}
+	got := n.Summary(10)
+	if got != "" {
+		t.Errorf("Summary on empty content = %q, want empty", got)
+	}
+}
+
+func TestUnitNewsItemSummaryOneChar(t *testing.T) {
+	n := entity.NewsItem{Content: "X"}
+	got := n.Summary(10)
+	if got != "X" {
+		t.Errorf("Summary(10) on single char = %q, want %q", got, "X")
+	}
+}
+
+func TestUnitNewsItemSummaryMaxRunesZero(t *testing.T) {
+	n := entity.NewsItem{Content: "Hello"}
+	got := n.Summary(0)
+	if got != "" {
+		t.Errorf("Summary(0) = %q, want empty", got)
+	}
+}
+
+func TestUnitNewsItemSummaryMaxRunesOne(t *testing.T) {
+	n := entity.NewsItem{Content: "Hello"}
+	got := n.Summary(1)
+	if got != "H" {
+		t.Errorf("Summary(1) = %q, want %q", got, "H")
+	}
+}
+
+func TestUnitNewsItemSummaryMaxRunesTwo(t *testing.T) {
+	n := entity.NewsItem{Content: "Hello"}
+	got := n.Summary(2)
+	if got != "He" {
+		t.Errorf("Summary(2) = %q, want %q", got, "He")
+	}
+}
+
+func TestUnitNewsItemSummaryUnicode(t *testing.T) {
+	n := entity.NewsItem{Content: "Привет мир!"}
+	got := n.Summary(6)
+	if got != "При..." {
+		t.Errorf("Summary(6) = %q, want %q", got, "При...")
 	}
 }
 
@@ -85,6 +170,46 @@ func TestUnitCategoryValidate(t *testing.T) {
 			name:    "empty slug",
 			cat:     entity.Category{Name: "Эспрессо", Slug: ""},
 			wantErr: entity.ErrEmptySlug,
+		},
+		{
+			name:    "both empty",
+			cat:     entity.Category{Name: "", Slug: ""},
+			wantErr: entity.ErrEmptyName, // name checked first
+		},
+		{
+			name:    "with description",
+			cat:     entity.Category{Name: "Кофе", Slug: "coffee", Description: "Кофейные напитки"},
+			wantErr: nil,
+		},
+		{
+			name:    "with sort order",
+			cat:     entity.Category{Name: "Кофе", Slug: "coffee", SortOrder: 10},
+			wantErr: nil,
+		},
+		{
+			name:    "unicode slug",
+			cat:     entity.Category{Name: "Кофе", Slug: "кофе"},
+			wantErr: nil,
+		},
+		{
+			name:    "slug with hyphens",
+			cat:     entity.Category{Name: "Iced Coffee", Slug: "iced-coffee"},
+			wantErr: nil,
+		},
+		{
+			name:    "long name",
+			cat:     entity.Category{Name: strings.Repeat("Категория", 50), Slug: "long"},
+			wantErr: nil,
+		},
+		{
+			name:    "whitespace name is valid",
+			cat:     entity.Category{Name: " ", Slug: "space"},
+			wantErr: nil,
+		},
+		{
+			name:    "whitespace slug is valid",
+			cat:     entity.Category{Name: "Test", Slug: " "},
+			wantErr: nil,
 		},
 	}
 

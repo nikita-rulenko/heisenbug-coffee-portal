@@ -189,3 +189,171 @@ func TestIntegrationProductDeleteNotFound(t *testing.T) {
 		t.Errorf("Delete non-existent = %v, want ErrNotFound", err)
 	}
 }
+
+func TestIntegrationProductGetByIDNotFound(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+
+	_, err := productRepo.GetByID(context.Background(), 999)
+	if err != entity.ErrNotFound {
+		t.Errorf("GetByID non-existent = %v, want ErrNotFound", err)
+	}
+}
+
+func TestIntegrationProductUpdateNotFound(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+
+	err := productRepo.Update(context.Background(), &entity.Product{ID: 999, Name: "X", Price: 100, CategoryID: 1})
+	if err != entity.ErrNotFound {
+		t.Errorf("Update non-existent = %v, want ErrNotFound", err)
+	}
+}
+
+func TestIntegrationProductSearchNoResults(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+	catRepo := sqliteRepo.NewCategoryRepo(db)
+	ctx := context.Background()
+
+	cat := seedCategory(t, catRepo)
+	productRepo.Create(ctx, &entity.Product{CategoryID: cat.ID, Name: "Кофе", Price: 200})
+
+	results, err := productRepo.Search(ctx, "несуществующий", 10)
+	if err != nil {
+		t.Fatalf("Search: %v", err)
+	}
+	if len(results) != 0 {
+		t.Errorf("Search no match len = %d, want 0", len(results))
+	}
+}
+
+func TestIntegrationProductSearchEmptyDB(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+
+	results, err := productRepo.Search(context.Background(), "test", 10)
+	if err != nil {
+		t.Fatalf("Search: %v", err)
+	}
+	if len(results) != 0 {
+		t.Errorf("Search empty DB len = %d, want 0", len(results))
+	}
+}
+
+func TestIntegrationProductListWithOffset(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+	catRepo := sqliteRepo.NewCategoryRepo(db)
+	ctx := context.Background()
+
+	cat := seedCategory(t, catRepo)
+	for i := range 10 {
+		productRepo.Create(ctx, &entity.Product{
+			CategoryID: cat.ID,
+			Name:       "P" + string(rune('0'+i)),
+			Price:      float64(100 + i),
+		})
+	}
+
+	page1, _ := productRepo.List(ctx, 0, 0, 3)
+	page2, _ := productRepo.List(ctx, 0, 3, 3)
+	page4, _ := productRepo.List(ctx, 0, 9, 3)
+
+	if len(page1) != 3 {
+		t.Errorf("page1 len = %d, want 3", len(page1))
+	}
+	if len(page2) != 3 {
+		t.Errorf("page2 len = %d, want 3", len(page2))
+	}
+	if len(page4) != 1 {
+		t.Errorf("last page len = %d, want 1", len(page4))
+	}
+	if page1[0].ID == page2[0].ID {
+		t.Error("pages should not overlap")
+	}
+}
+
+func TestIntegrationProductListByNonExistentCategory(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+	catRepo := sqliteRepo.NewCategoryRepo(db)
+	ctx := context.Background()
+
+	cat := seedCategory(t, catRepo)
+	productRepo.Create(ctx, &entity.Product{CategoryID: cat.ID, Name: "X", Price: 100})
+
+	results, err := productRepo.List(ctx, 999, 0, 100)
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(results) != 0 {
+		t.Errorf("len = %d, want 0", len(results))
+	}
+}
+
+func TestIntegrationProductSearchLimit(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+	catRepo := sqliteRepo.NewCategoryRepo(db)
+	ctx := context.Background()
+
+	cat := seedCategory(t, catRepo)
+	for range 10 {
+		productRepo.Create(ctx, &entity.Product{
+			CategoryID:  cat.ID,
+			Name:        "Кофе вариант",
+			Description: "кофе",
+			Price:       200,
+		})
+	}
+
+	results, _ := productRepo.Search(ctx, "кофе", 3)
+	if len(results) != 3 {
+		t.Errorf("Search with limit 3 len = %d, want 3", len(results))
+	}
+}
+
+func TestIntegrationProductUpdateFields(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+	catRepo := sqliteRepo.NewCategoryRepo(db)
+	ctx := context.Background()
+
+	cat := seedCategory(t, catRepo)
+	p := &entity.Product{CategoryID: cat.ID, Name: "Латте", Price: 350, InStock: true, Description: "Молочный"}
+	productRepo.Create(ctx, p)
+
+	p.Name = "Раф"
+	p.Price = 400
+	p.InStock = false
+	p.Description = "Ванильный"
+	productRepo.Update(ctx, p)
+
+	got, _ := productRepo.GetByID(ctx, p.ID)
+	if got.Name != "Раф" || got.Price != 400 || got.InStock != false || got.Description != "Ванильный" {
+		t.Errorf("Update fields mismatch: %+v", got)
+	}
+}
+
+func TestIntegrationProductCountAfterDelete(t *testing.T) {
+	db := setupTestDB(t)
+	productRepo := sqliteRepo.NewProductRepo(db)
+	catRepo := sqliteRepo.NewCategoryRepo(db)
+	ctx := context.Background()
+
+	cat := seedCategory(t, catRepo)
+	p := &entity.Product{CategoryID: cat.ID, Name: "X", Price: 100}
+	productRepo.Create(ctx, p)
+
+	count, _ := productRepo.Count(ctx, 0)
+	if count != 1 {
+		t.Fatalf("count = %d, want 1", count)
+	}
+
+	productRepo.Delete(ctx, p.ID)
+	count, _ = productRepo.Count(ctx, 0)
+	if count != 0 {
+		t.Errorf("count after delete = %d, want 0", count)
+	}
+}
