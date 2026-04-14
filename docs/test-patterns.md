@@ -1,5 +1,7 @@
 # Test Patterns & Anti-patterns — Bean & Brew
 
+> **Last updated: 2026-04-13**
+
 ## Patterns Used
 
 ### 1. Table-Driven Tests

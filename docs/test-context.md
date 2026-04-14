@@ -1,5 +1,7 @@
 # Test Context — Bean & Brew Portal
 
+> **Last updated: 2026-04-13**
+
 ## Project Domain
 Coffee shop e-commerce portal with 4 core entities:
 
@@ -33,7 +35,17 @@ Coffee shop e-commerce portal with 4 core entities:
 - Go 1.25, CGO_ENABLED=1 (for SQLite)
 - SQLite in-memory (`:memory:`) — each test gets clean instance
 - No external dependencies (no network, no Docker)
-- Test run time: ~3 seconds total
+- Test run time: ~4 seconds total
+- 336 test functions, ~637 sub-tests (table-driven)
+
+## Test Coverage (2026-04-13)
+| Package | Coverage |
+|---------|----------|
+| internal/entity | 100.0% |
+| internal/usecase | 93.6% |
+| internal/repository/sqlite | 77.5% |
+| internal/handler | 67.0% |
+| cmd/server | 0.0% |
 
 ## Test Data Strategy
 - Integration tests create their own data via `seedCategory()` helper

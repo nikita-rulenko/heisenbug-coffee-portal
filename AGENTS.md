@@ -1,5 +1,7 @@
 # Bean & Brew — Coffee Shop Portal
 
+> **Last updated: 2026-04-13**
+
 ## Overview
 Go web application for a coffee shop with product catalog, news feed, and order management.
 Built for Heisenbug 2026 research on AI test context management.
@@ -29,14 +31,31 @@ All JSON endpoints under `/api/v1/`:
 - `POST /orders/{id}/cancel`, `POST /orders/{id}/process`, `POST /orders/{id}/complete`
 
 ## Testing
-62 tests across 4 levels — run `go test ./...`:
+336 test functions (~637 sub-tests with table-driven) across 4 levels — run `go test ./...`:
 - **Unit** (`internal/entity/*_test.go`): validation, ApplyDiscount, Summary, CalculateTotal, CanCancel/CanComplete
 - **Integration** (`internal/repository/sqlite/*_test.go`): CRUD, search, pagination, status transitions
-- **API** (`internal/handler/api_test.go`): full HTTP endpoints via httptest
-- **UseCase** (`internal/usecase/usecase_test.go`): business logic with real in-memory SQLite
+- **API** (`internal/handler/*_test.go`): full HTTP endpoints via httptest
+- **UseCase** (`internal/usecase/*_test.go`): business logic with real in-memory SQLite
+
+### Test Coverage (2026-04-13)
+| Layer | Coverage |
+|-------|----------|
+| entity | 100.0% |
+| usecase | 93.6% |
+| repository/sqlite | 77.5% |
+| handler | 67.0% |
+| cmd/server | 0.0% (main — not tested) |
+
+Run `go test -cover ./...` to verify.
+
+## Context Sources
+- **MD files**: this file + `docs/test-index.md`, `docs/test-context.md`, `docs/test-patterns.md`
+- **Cursor rules**: `.cursor/rules/architecture.mdc`, `testing.mdc`, `github.mdc`
+- **GitHub Issues**: [issues](https://github.com/nikita-rulenko/heisenbug-coffee-portal/issues) — track work via MCP
 
 ## Conventions
 - Test names: `TestUnit*`, `TestIntegration*`, `TestAPI*`
 - Table-driven tests preferred
 - In-memory SQLite (`:memory:`) for test isolation
 - `setupTestDB(t)` helper in `sqlite/testhelper_test.go`
+- **GitHub Issues**: при работе по тикету оставляй комментарии о ходе работы (см. `.cursor/rules/github.mdc`)

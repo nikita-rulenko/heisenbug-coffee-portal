@@ -1,9 +1,11 @@
 # Test Index — Bean & Brew Portal
 
+> **Last updated: 2026-04-13**
+
 ## Summary
-- Total tests: 62
-- Unit: 32 | Integration: 13 | API: 10 | UseCase: 7
+- Total test functions: 336 (~637 sub-tests with table-driven)
 - Run: `go test -v ./...`
+- Coverage: entity 100% · usecase 93.6% · repository 77.5% · handler 67.0%
 
 ## Test Files
 
@@ -73,6 +75,13 @@
 - API tests depend on `setupTestServer()` → full handler wiring
 - UseCase tests use real SQLite but through usecase layer
 - All DB tests are isolated (separate `:memory:` instance per test)
+
+## Extended Tests (added 2026-04)
+After scaling from 62 → 336 test functions, the following `*_extended_test.go` files were added:
+- `internal/entity/` — product, order, news extended validation and edge cases
+- `internal/repository/sqlite/` — extended CRUD, pagination, edge cases for all entities
+- `internal/handler/` — category, product, order, news API extended tests
+- `internal/usecase/` — category, product, order, news UC extended tests
 
 ## Coverage Gaps
 - No tests for HTML page handlers (PageHandler.Home, Catalog, NewsFeed)
