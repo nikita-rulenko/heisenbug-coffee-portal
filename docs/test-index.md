@@ -4,7 +4,7 @@
 
 ## Сводка
 - **336 тестовых функций** — `func Test*()` в коде
-- **~637 sub-tests** — отдельные кейсы внутри table-driven тестов через `t.Run()`
+- **~637 прогонов в `-v`** — функции + sub-tests внутри table-driven (строки `=== RUN` в `go test -v`)
 - Запуск: `go test -v ./...` (флаг `-v` покажет sub-tests)
 - Coverage: entity 100% · usecase 93.6% · repository 77.5% · handler 67.0%
 - Известные проблемы и flaky тесты: см. `known_issues.md`

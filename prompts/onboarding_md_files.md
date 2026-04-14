@@ -26,6 +26,9 @@
 4. `docs/test-patterns.md` — паттерны и антипаттерны тестирования
 5. `docs/known_issues.md` — известные проблемы, flaky тесты, пробелы покрытия
 6. `.cursor/rules/*.mdc` — правила для агента: архитектура, тестирование, GitHub workflow
+
+Важно: используй ТОЛЬКО MD файлы и запуск тестов. Не вызывай MCP-серверы
+(Mem0, Helixir, GitHub и т.д.), даже если они доступны в среде.
 </context_source>
 
 <what_to_learn>

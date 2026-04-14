@@ -31,8 +31,8 @@ Clean Architecture, 4 слоя:
 - `POST /orders/{id}/cancel`, `POST /orders/{id}/process`, `POST /orders/{id}/complete`
 
 ## Тестирование
-336 тестовых функций (~637 sub-tests через table-driven) на 4 уровнях — запуск `go test ./...`.
-> **Примечание:** 336 = количество `func Test*()`; ~637 = отдельные кейсы `t.Run()` внутри table-driven. Подробнее в `docs/known_issues.md`.
+336 тестовых функций (~637 прогонов с sub-tests) на 4 уровнях — запуск `go test ./...`.
+> **Примечание:** 336 = количество `func Test*()`; ~637 = строки `=== RUN` в `go test -v` (функции + sub-tests через `t.Run()`). Подробнее в `docs/known_issues.md`.
 - **Unit** (`internal/entity/*_test.go`): валидация, ApplyDiscount, Summary, CalculateTotal, CanCancel/CanComplete
 - **Integration** (`internal/repository/sqlite/*_test.go`): CRUD, поиск, пагинация, переходы статусов
 - **API** (`internal/handler/*_test.go`): полные HTTP-эндпоинты через httptest

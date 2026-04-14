@@ -30,6 +30,9 @@
    - Метки: `test:unit`, `test:integration`, `context:coverage` и т.д.
    - Даты: создания, последнего комментария — это индикатор актуальности
 4. Прочитай `.cursor/rules/github.mdc` — правила работы с тикетами
+
+Важно: используй ТОЛЬКО GitHub Issues и файлы репозитория. Не вызывай другие
+MCP-серверы (Mem0, Helixir и т.д.), даже если они доступны в среде.
 </context_source>
 
 <what_to_learn>

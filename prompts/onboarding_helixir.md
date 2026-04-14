@@ -35,6 +35,9 @@
    - `certainty` скор — уверенность (низкий = возможно устаревшие данные)
    - `memory_type` — fact / preference / opinion / action
 4. Прочитай `.cursor/rules/helixir.mdc` — правила работы с Helixir
+
+Важно: используй ТОЛЬКО Helixir и файлы репозитория. Не вызывай другие
+MCP-серверы (Mem0, GitHub и т.д.), даже если они доступны в среде.
 </context_source>
 
 <what_to_learn>
