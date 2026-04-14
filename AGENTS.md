@@ -51,7 +51,8 @@ Clean Architecture, 4 слоя:
 
 ## Источники контекста
 - **MD файлы**: этот файл + `docs/test-index.md`, `docs/test-context.md`, `docs/test-patterns.md`, `docs/known_issues.md`
-- **Cursor rules**: `.cursor/rules/architecture.mdc`, `testing.mdc`, `github.mdc`
+- **Cursor rules**: `.cursor/rules/architecture.mdc`, `testing.mdc`, `github.mdc`, `mem0.mdc`, `helixir.mdc`
+- **Промты онбординга**: `prompts/` — 4 промта для разных подходов к контексту
 - **GitHub Issues**: [issues](https://github.com/nikita-rulenko/heisenbug-coffee-portal/issues) — трекинг работы через MCP
 
 ## Конвенции
