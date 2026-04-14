@@ -1,11 +1,11 @@
-# Test Patterns & Anti-patterns — Bean & Brew
+# Паттерны и антипаттерны тестирования — Bean & Brew
 
 > **Last updated: 2026-04-14**
 
-## Patterns Used
+## Используемые паттерны
 
 ### 1. Table-Driven Tests
-Most unit tests use subtests with `t.Run()`:
+Большинство unit тестов используют sub-tests с `t.Run()`:
 ```go
 tests := []struct {
     name    string
@@ -16,9 +16,9 @@ for _, tt := range tests {
     t.Run(tt.name, func(t *testing.T) { ... })
 }
 ```
-**Where:** product_test.go, order_test.go, news_test.go
+**Где:** product_test.go, order_test.go, news_test.go
 
-### 2. Test Helpers with t.Helper()
+### 2. Test Helpers с t.Helper()
 ```go
 func setupTestDB(t *testing.T) *sql.DB {
     t.Helper()
@@ -28,17 +28,17 @@ func setupTestDB(t *testing.T) *sql.DB {
     return db
 }
 ```
-**Where:** testhelper_test.go, api_test.go
+**Где:** testhelper_test.go, api_test.go
 
-### 3. In-Memory Database Isolation
-Each test gets fresh `:memory:` SQLite — no cleanup needed, no data leaks.
-**Benefit:** Tests can run in parallel without conflicts.
+### 3. Изоляция через In-Memory БД
+Каждый тест получает свежий `:memory:` SQLite — не нужен cleanup, нет утечки данных.
+**Преимущество:** Тесты могут запускаться параллельно без конфликтов.
 
-### 4. Seed Helper for Dependencies
+### 4. Seed-хелпер для зависимостей
 ```go
 func seedCategory(t *testing.T, repo *CategoryRepo) *entity.Category { ... }
 ```
-Creates prerequisite data for tests that need categories before products.
+Создаёт prerequisite-данные для тестов, которым нужна категория до создания продукта.
 
 ### 5. HTTP Test Server
 ```go
@@ -46,43 +46,43 @@ srv := setupTestServer(t)
 defer srv.Close()
 resp, _ := postJSON(srv.URL+"/api/v1/products", ...)
 ```
-Full server stack via httptest.NewServer — tests real routing, middleware, serialization.
+Полный стек сервера через httptest.NewServer — тестирует реальный routing, middleware, сериализацию.
 
-## Anti-patterns to Watch For
+## Антипаттерны (на что обращать внимание)
 
-### 1. Test Interdependence
-**Risk:** Tests relying on data created by other tests.
-**Status:** Not present — each test creates its own data.
-**If violated:** Tests may pass individually but fail in suite, or vice versa.
+### 1. Зависимость между тестами
+**Риск:** Тесты полагаются на данные, созданные другими тестами.
+**Статус:** Отсутствует — каждый тест создаёт свои данные.
+**Если нарушить:** Тесты могут проходить поодиночке, но падать в suite, и наоборот.
 
-### 2. Hardcoded IDs
-**Risk:** Assuming `ID=1` after first insert.
-**Mitigation:** We use `p.ID` from Create result, not hardcoded values.
+### 2. Захардкоженные ID
+**Риск:** Предполагать `ID=1` после первого insert.
+**Митигация:** Используем `p.ID` из результата Create, не захардкоженные значения.
 
-### 3. Time-Dependent Tests
-**Risk:** Tests comparing `time.Now()` with stored timestamps.
-**Status:** Not present, but `created_at` comparisons would be fragile.
+### 3. Тесты, зависящие от времени
+**Риск:** Сравнение `time.Now()` с сохранёнными timestamps.
+**Статус:** Отсутствует, но сравнения `created_at` были бы хрупкими.
 
-### 4. Over-mocking
-**Risk:** Mocking every dependency, losing integration coverage.
-**Status:** We use real SQLite `:memory:` instead of mocks — faster and more realistic.
+### 4. Избыточное мокирование
+**Риск:** Мокать каждую зависимость, теряя integration-покрытие.
+**Статус:** Используем реальный SQLite `:memory:` вместо моков — быстрее и реалистичнее.
 
-### 5. Testing Implementation, Not Behavior
-**Risk:** Tests that break when internal implementation changes.
-**Example:** Testing exact SQL query instead of result correctness.
-**Mitigation:** Our tests check returned data, not internal calls.
+### 5. Тестирование реализации, а не поведения
+**Риск:** Тесты ломаются при изменении внутренней реализации.
+**Пример:** Проверка точного SQL-запроса вместо корректности результата.
+**Митигация:** Наши тесты проверяют возвращённые данные, а не внутренние вызовы.
 
-## Known Issues
+## Известные проблемы
 
-### Potential Flaky: TestIntegrationProductSearch
-Uses `LIKE '%молок%'` which depends on exact data. If seed data changes
-or another test inserts data with "молок" in the same DB, results change.
-Currently mitigated by isolated `:memory:` per test.
+### Потенциально flaky: TestIntegrationProductSearch
+Использует `LIKE '%молок%'`, что зависит от точных данных. Если seed-данные изменятся
+или другой тест вставит данные с "молок" в ту же БД — результаты изменятся.
+Сейчас митигируется изоляцией через `:memory:` на каждый тест.
 
-### Missing: Parallel Test Execution
-Tests don't use `t.Parallel()`. Could be added for unit tests safely.
-Integration tests sharing DB instance should NOT be parallelized.
+### Отсутствует: параллельный запуск тестов
+Тесты не используют `t.Parallel()`. Можно безопасно добавить для unit тестов.
+Integration тесты, шарящие экземпляр БД, параллелить **нельзя**.
 
-### Missing: Error Message Assertions
-We check error type but not error messages. If an error wraps another,
-`errors.Is()` handles it, but literal string comparison would break.
+### Отсутствует: проверка текстов ошибок
+Проверяем тип ошибки, но не текст. Если ошибка обёрнута через wrap,
+`errors.Is()` справится, но literal string comparison сломается.

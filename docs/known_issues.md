@@ -1,68 +1,68 @@
-# Known Issues & Flaky Tests — Bean & Brew
+# Известные проблемы и flaky тесты — Bean & Brew
 
 > **Last updated: 2026-04-14**
 
-## How to count tests
+## Как считаем тесты
 
-This project reports two numbers:
-- **336 test functions** — `func Test*(t *testing.T)` registered in `_test.go` files
-- **~637 sub-tests** — individual cases inside table-driven tests via `t.Run()`
+В проекте два числа:
+- **336 тестовых функций** — `func Test*(t *testing.T)` в файлах `_test.go`
+- **~637 sub-tests** — отдельные кейсы внутри table-driven тестов через `t.Run()`
 
-`go test ./...` counts functions. `go test -v ./...` shows all sub-tests.
-Both numbers are valid; we always report them together: "336 functions (~637 sub-tests)".
+`go test ./...` считает функции. `go test -v ./...` показывает все sub-tests.
+Оба числа корректны; в документации всегда указываем оба: «336 функций (~637 sub-tests)».
 
-## Potentially Flaky Tests
+## Потенциально flaky тесты
 
 ### TestIntegrationProductSearch
-- **Risk:** Uses `LIKE '%молок%'` — depends on exact seed data and insert order
-- **Root cause:** Cyrillic LIKE behavior may vary across SQLite versions
-- **Mitigation:** Each test gets isolated `:memory:` DB, so no cross-test data leaks
-- **Status:** Stable in current setup, but fragile if seed data changes
+- **Риск:** Использует `LIKE '%молок%'` — зависит от точных seed-данных и порядка вставки
+- **Причина:** Поведение LIKE с кириллицей может отличаться между версиями SQLite
+- **Митигация:** Каждый тест получает изолированную `:memory:` БД, нет утечки данных
+- **Статус:** Стабилен в текущей конфигурации, но хрупок при изменении seed-данных
 
 ### TestUnitNewsItemSummary
-- **History:** Was buggy — used `len()` (bytes) instead of `[]rune` for UTF-8 truncation
-- **Fix:** Now correctly counts runes, handles Cyrillic properly
-- **Status:** Fixed, stable
+- **История:** Был баг — использовал `len()` (байты) вместо `[]rune` для UTF-8 обрезки
+- **Исправление:** Теперь корректно считает runes, правильно обрабатывает кириллицу
+- **Статус:** Исправлен, стабилен
 
 ### TestUnitNewsItemSummaryNegativeMaxRunes
-- **Behavior:** Panics on negative input (slice bounds out of range)
-- **Status:** Expected — test verifies panic with `recover()`
+- **Поведение:** Паникует при отрицательном input (slice bounds out of range)
+- **Статус:** Ожидаемо — тест проверяет панику через `recover()`
 
-## Known Bugs / Limitations
+## Известные баги / ограничения
 
 ### TestAPICategoryCreateDuplicateSlug
-- **Issue:** Returns HTTP 500 instead of 409 Conflict
-- **Root cause:** SQLite UNIQUE constraint error is not mapped to `ErrAlreadyExists` in repository
-- **Impact:** Low — duplicate slugs are an edge case
-- **Fix:** Map UNIQUE constraint violation to `entity.ErrAlreadyExists` in `sqlite/category.go`
+- **Проблема:** Возвращает HTTP 500 вместо 409 Conflict
+- **Причина:** Ошибка SQLite UNIQUE constraint не маппится в `ErrAlreadyExists` в repository
+- **Влияние:** Низкое — дубликаты slug это edge case
+- **Исправление:** Замаппить UNIQUE constraint violation на `entity.ErrAlreadyExists` в `sqlite/category.go`
 
-### Float Precision in Calculations
-- **Where:** `TestUnitOrderCalculateTotalFloatPrecision`, `TestUnitProductApplyDiscount`
-- **Issue:** IEEE 754 float arithmetic: `0.1*10 + 0.2*5` is not exactly `2.0`
-- **Mitigation:** Tests use tolerance check (+-0.1)
-- **Recommendation:** Consider `int64` cents for production use
+### Точность float в вычислениях
+- **Где:** `TestUnitOrderCalculateTotalFloatPrecision`, `TestUnitProductApplyDiscount`
+- **Проблема:** Арифметика IEEE 754: `0.1*10 + 0.2*5` не равно точно `2.0`
+- **Митигация:** Тесты используют проверку с допуском (+-0.1)
+- **Рекомендация:** Для продакшена использовать `int64` копейки
 
-### Case-Insensitive Search
-- **Where:** Product search via `LIKE`
-- **Issue:** SQLite LIKE is case-insensitive for ASCII but not for all Unicode
-- **Impact:** Cyrillic search works because SQLite treats it as binary comparison
-- **Status:** Acceptable for demo project
+### Регистронезависимый поиск
+- **Где:** Поиск продуктов через `LIKE`
+- **Проблема:** SQLite LIKE регистронезависим для ASCII, но не для всего Unicode
+- **Влияние:** Поиск по кириллице работает, т.к. SQLite обрабатывает её как бинарное сравнение
+- **Статус:** Приемлемо для демо-проекта
 
-## Missing Test Coverage
+## Пробелы в тестовом покрытии
 
-| Area | Current | Gap |
-|------|---------|-----|
-| HTML page handlers (Home, Catalog, NewsFeed) | 0% | No tests at all |
-| Handler package overall | 67.0% | Target: 80%+ |
-| Repository package overall | 77.5% | Target: 85%+ |
-| cmd/server (main) | 0.0% | Not testable (wiring only) |
-| E2E browser tests | none | Not implemented |
-| Concurrent access patterns | none | Not tested |
-| t.Parallel() | not used | Can be added to unit tests safely |
+| Область | Сейчас | Пробел |
+|---------|--------|--------|
+| HTML page handlers (Home, Catalog, NewsFeed) | 0% | Тестов нет вообще |
+| Пакет handler в целом | 67.0% | Цель: 80%+ |
+| Пакет repository в целом | 77.5% | Цель: 85%+ |
+| cmd/server (main) | 0.0% | Не тестируется (только wiring) |
+| E2E browser тесты | нет | Не реализованы |
+| Тесты конкурентного доступа | нет | Не реализованы |
+| t.Parallel() | не используется | Можно добавить в unit тесты |
 
-## Related Issues
-- #10 — Handler coverage improvement
-- #11 — t.Parallel() for unit tests
-- #12 — E2E browser tests
-- #13 — Repository coverage improvement
-- #14 — Overall analysis and roadmap
+## Связанные тикеты
+- #10 — Улучшение покрытия handler
+- #11 — t.Parallel() для unit тестов
+- #12 — E2E browser тесты
+- #13 — Улучшение покрытия repository
+- #14 — Общий анализ и roadmap

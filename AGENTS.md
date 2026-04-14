@@ -1,62 +1,62 @@
-# Bean & Brew — Coffee Shop Portal
+# Bean & Brew — Портал кофейни
 
 > **Last updated: 2026-04-14**
 
-## Overview
-Go web application for a coffee shop with product catalog, news feed, and order management.
-Built for Heisenbug 2026 research on AI test context management.
+## Обзор
+Go веб-приложение для кофейни: каталог продуктов, лента новостей, управление заказами.
+Создано для исследования Heisenbug 2026 по управлению AI-контекстом при тестировании.
 
-## Architecture
-Clean Architecture with 4 layers:
-- `internal/entity/` — domain models (Product, Category, NewsItem, Order) + validation + errors
-- `internal/usecase/` — business logic, depends only on entity + repository interfaces
-- `internal/repository/` — interfaces; `sqlite/` has SQLite implementation
-- `internal/handler/` — HTTP handlers (JSON API + HTML pages)
+## Архитектура
+Clean Architecture, 4 слоя:
+- `internal/entity/` — доменные модели (Product, Category, NewsItem, Order) + валидация + ошибки
+- `internal/usecase/` — бизнес-логика, зависит только от entity + интерфейсов repository
+- `internal/repository/` — интерфейсы; `sqlite/` — реализация на SQLite
+- `internal/handler/` — HTTP-обработчики (JSON API + HTML-страницы)
 
-## Tech Stack
+## Стек технологий
 - Go 1.25, Chi router, html/template + htmx, SQLite (WAL mode)
-- No ORM — raw SQL with `database/sql`
+- Без ORM — raw SQL через `database/sql`
 
-## Key Files
-- `cmd/server/main.go` — entry point, wiring
-- `internal/repository/sqlite/migrations.go` — schema
-- `internal/repository/sqlite/seed.go` — demo data (5 categories, 17 products, 3 news)
+## Ключевые файлы
+- `cmd/server/main.go` — точка входа, wiring
+- `internal/repository/sqlite/migrations.go` — схема БД
+- `internal/repository/sqlite/seed.go` — демо-данные (5 категорий, 17 продуктов, 3 новости)
 
 ## API
-All JSON endpoints under `/api/v1/`:
+Все JSON-эндпоинты под `/api/v1/`:
 - `GET/POST /products`, `GET/PUT/DELETE /products/{id}`, `GET /products/search?q=`
 - `GET/POST /categories`, `GET/PUT/DELETE /categories/{id}`
 - `GET/POST /news`, `GET/PUT/DELETE /news/{id}`
 - `POST /orders`, `GET /orders/{id}`, `GET /orders/customer/{customerID}`
 - `POST /orders/{id}/cancel`, `POST /orders/{id}/process`, `POST /orders/{id}/complete`
 
-## Testing
-336 test functions (~637 sub-tests with table-driven) across 4 levels — run `go test ./...`.
-> **Note:** 336 = `func Test*()` count; ~637 = individual `t.Run()` cases inside table-driven tests. See `docs/known_issues.md` for details.
-- **Unit** (`internal/entity/*_test.go`): validation, ApplyDiscount, Summary, CalculateTotal, CanCancel/CanComplete
-- **Integration** (`internal/repository/sqlite/*_test.go`): CRUD, search, pagination, status transitions
-- **API** (`internal/handler/*_test.go`): full HTTP endpoints via httptest
-- **UseCase** (`internal/usecase/*_test.go`): business logic with real in-memory SQLite
+## Тестирование
+336 тестовых функций (~637 sub-tests через table-driven) на 4 уровнях — запуск `go test ./...`.
+> **Примечание:** 336 = количество `func Test*()`; ~637 = отдельные кейсы `t.Run()` внутри table-driven. Подробнее в `docs/known_issues.md`.
+- **Unit** (`internal/entity/*_test.go`): валидация, ApplyDiscount, Summary, CalculateTotal, CanCancel/CanComplete
+- **Integration** (`internal/repository/sqlite/*_test.go`): CRUD, поиск, пагинация, переходы статусов
+- **API** (`internal/handler/*_test.go`): полные HTTP-эндпоинты через httptest
+- **UseCase** (`internal/usecase/*_test.go`): бизнес-логика с реальным in-memory SQLite
 
-### Test Coverage (2026-04-13)
-| Layer | Coverage |
-|-------|----------|
+### Покрытие тестами (2026-04-14)
+| Слой | Coverage |
+|------|----------|
 | entity | 100.0% |
 | usecase | 93.6% |
 | repository/sqlite | 77.5% |
 | handler | 67.0% |
-| cmd/server | 0.0% (main — not tested) |
+| cmd/server | 0.0% (main — не тестируется) |
 
-Run `go test -cover ./...` to verify.
+Проверить: `go test -cover ./...`
 
-## Context Sources
-- **MD files**: this file + `docs/test-index.md`, `docs/test-context.md`, `docs/test-patterns.md`, `docs/known_issues.md`
+## Источники контекста
+- **MD файлы**: этот файл + `docs/test-index.md`, `docs/test-context.md`, `docs/test-patterns.md`, `docs/known_issues.md`
 - **Cursor rules**: `.cursor/rules/architecture.mdc`, `testing.mdc`, `github.mdc`
-- **GitHub Issues**: [issues](https://github.com/nikita-rulenko/heisenbug-coffee-portal/issues) — track work via MCP
+- **GitHub Issues**: [issues](https://github.com/nikita-rulenko/heisenbug-coffee-portal/issues) — трекинг работы через MCP
 
-## Conventions
-- Test names: `TestUnit*`, `TestIntegration*`, `TestAPI*`
-- Table-driven tests preferred
-- In-memory SQLite (`:memory:`) for test isolation
-- `setupTestDB(t)` helper in `sqlite/testhelper_test.go`
+## Конвенции
+- Именование тестов: `TestUnit*`, `TestIntegration*`, `TestAPI*`
+- Предпочтительно table-driven тесты
+- In-memory SQLite (`:memory:`) для изоляции тестов
+- Хелпер `setupTestDB(t)` в `sqlite/testhelper_test.go`
 - **GitHub Issues**: при работе по тикету оставляй комментарии о ходе работы (см. `.cursor/rules/github.mdc`)
