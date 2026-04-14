@@ -1,11 +1,13 @@
 # Test Index — Bean & Brew Portal
 
-> **Last updated: 2026-04-13**
+> **Last updated: 2026-04-14**
 
 ## Summary
-- Total test functions: 336 (~637 sub-tests with table-driven)
-- Run: `go test -v ./...`
+- **336 test functions** — `func Test*()` registered in code
+- **~637 sub-tests** — individual `t.Run()` cases inside table-driven tests
+- Run: `go test -v ./...` (use `-v` to see sub-tests)
 - Coverage: entity 100% · usecase 93.6% · repository 77.5% · handler 67.0%
+- Known issues and flaky tests: see `known_issues.md`
 
 ## Test Files
 

@@ -1,6 +1,6 @@
 # Test Patterns & Anti-patterns — Bean & Brew
 
-> **Last updated: 2026-04-13**
+> **Last updated: 2026-04-14**
 
 ## Patterns Used
 

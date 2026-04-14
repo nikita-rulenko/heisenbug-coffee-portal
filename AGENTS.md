@@ -1,6 +1,6 @@
 # Bean & Brew — Coffee Shop Portal
 
-> **Last updated: 2026-04-13**
+> **Last updated: 2026-04-14**
 
 ## Overview
 Go web application for a coffee shop with product catalog, news feed, and order management.
@@ -31,7 +31,8 @@ All JSON endpoints under `/api/v1/`:
 - `POST /orders/{id}/cancel`, `POST /orders/{id}/process`, `POST /orders/{id}/complete`
 
 ## Testing
-336 test functions (~637 sub-tests with table-driven) across 4 levels — run `go test ./...`:
+336 test functions (~637 sub-tests with table-driven) across 4 levels — run `go test ./...`.
+> **Note:** 336 = `func Test*()` count; ~637 = individual `t.Run()` cases inside table-driven tests. See `docs/known_issues.md` for details.
 - **Unit** (`internal/entity/*_test.go`): validation, ApplyDiscount, Summary, CalculateTotal, CanCancel/CanComplete
 - **Integration** (`internal/repository/sqlite/*_test.go`): CRUD, search, pagination, status transitions
 - **API** (`internal/handler/*_test.go`): full HTTP endpoints via httptest
@@ -49,7 +50,7 @@ All JSON endpoints under `/api/v1/`:
 Run `go test -cover ./...` to verify.
 
 ## Context Sources
-- **MD files**: this file + `docs/test-index.md`, `docs/test-context.md`, `docs/test-patterns.md`
+- **MD files**: this file + `docs/test-index.md`, `docs/test-context.md`, `docs/test-patterns.md`, `docs/known_issues.md`
 - **Cursor rules**: `.cursor/rules/architecture.mdc`, `testing.mdc`, `github.mdc`
 - **GitHub Issues**: [issues](https://github.com/nikita-rulenko/heisenbug-coffee-portal/issues) — track work via MCP
 

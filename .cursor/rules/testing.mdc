@@ -1,39 +1,45 @@
 ---
-description: Rules for writing and managing tests in Bean & Brew portal
+description: Правила написания и поддержки тестов Bean & Brew портала
 globs: ["**/*_test.go"]
 ---
 
-# Testing Rules
+# Правила тестирования
 
-## Naming
-- Unit tests: `TestUnit<Entity><Method>` (e.g., `TestUnitProductValidate`)
-- Integration tests: `TestIntegration<Entity><Operation>` (e.g., `TestIntegrationProductCRUD`)
-- API tests: `TestAPI<Entity><Scenario>` (e.g., `TestAPIProductNotFound`)
+## Именование
+- Unit тесты: `TestUnit<Entity><Method>` (например, `TestUnitProductValidate`)
+- Integration тесты: `TestIntegration<Entity><Operation>` (например, `TestIntegrationProductCRUD`)
+- API тесты: `TestAPI<Entity><Scenario>` (например, `TestAPIProductNotFound`)
 
-## Structure
-- Use table-driven tests with `t.Run()` for parameterized cases
-- Each test file lives next to the code it tests
-- Use `setupTestDB(t)` from `testhelper_test.go` for integration tests
-- Use `setupTestServer(t)` from `api_test.go` for API tests
+## Структура
+- Table-driven тесты с `t.Run()` для параметризованных кейсов
+- Тестовый файл лежит рядом с тестируемым кодом
+- `setupTestDB(t)` из `testhelper_test.go` — для integration тестов
+- `setupTestServer(t)` из `api_test.go` — для API тестов
 
-## Database
-- Always use `:memory:` SQLite for tests — never the real DB
-- Call `t.Cleanup()` to close DB connections
-- Each test gets its own DB instance — no shared state between tests
+## База данных
+- Всегда `:memory:` SQLite — никогда реальная БД
+- `t.Cleanup()` для закрытия соединений
+- Каждый тест получает свой экземпляр БД — нет shared state между тестами
 
-## Assertions
-- Use standard `testing` package with `t.Errorf`/`t.Fatalf`
-- Compare errors with `errors.Is()` or direct comparison for sentinel errors
-- For collections, check `len()` before accessing elements
+## Проверки (assertions)
+- Стандартный пакет `testing` с `t.Errorf`/`t.Fatalf`
+- Ошибки сравниваем через `errors.Is()` или прямое сравнение sentinel-ошибок
+- Для коллекций — сначала `len()`, потом доступ к элементам
 
-## What to Test
-- Validation: every entity field constraint
-- Error paths: ErrNotFound, ErrInvalidStatus, validation errors
-- Pagination: page boundaries, empty results
-- Status transitions: valid and invalid state changes for orders
+## Что тестировать
+- Валидацию: каждое ограничение на поля сущности
+- Error paths: ErrNotFound, ErrInvalidStatus, ошибки валидации
+- Пагинацию: граничные значения, пустые результаты
+- Переходы статусов: валидные и невалидные для заказов
 
-## Anti-patterns to Avoid
-- No `time.Sleep()` in tests
-- No network calls in unit tests
-- No shared mutable state between parallel tests
-- Don't test Go stdlib behavior (e.g., JSON marshaling)
+## Метрики тестов
+- **336 тестовых функций** — это `func Test*(t *testing.T)` в коде
+- **~637 sub-tests** — это кейсы внутри table-driven тестов через `t.Run()`
+- `go test ./...` считает функции; sub-tests видны только с флагом `-v`
+- В документации указываем оба числа: «336 функций (~637 sub-tests)»
+
+## Антипаттерны
+- Не использовать `time.Sleep()` в тестах
+- Не делать сетевых вызовов в unit тестах
+- Не шарить мутабельное состояние между параллельными тестами
+- Не тестировать поведение stdlib (например, JSON marshaling)

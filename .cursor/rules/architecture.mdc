@@ -1,34 +1,34 @@
 ---
-description: Architecture and code conventions for Bean & Brew portal
+description: Архитектура и конвенции кода Bean & Brew портала
 globs: ["**/*.go"]
 ---
 
-# Architecture Rules
+# Правила архитектуры
 
-## Layer Dependencies
-- `entity` depends on nothing (only stdlib)
-- `usecase` depends on `entity` and repository interfaces
-- `repository/sqlite` depends on `entity` and `database/sql`
-- `handler` depends on `usecase`, `entity`, `chi`
-- `cmd/server` wires everything together
+## Зависимости слоёв
+- `entity` — не зависит ни от чего (только stdlib)
+- `usecase` — зависит от `entity` и интерфейсов repository
+- `repository/sqlite` — зависит от `entity` и `database/sql`
+- `handler` — зависит от `usecase`, `entity`, `chi`
+- `cmd/server` — связывает всё вместе (wiring)
 
-## Adding a New Entity
-1. Create `internal/entity/<name>.go` with struct + `Validate()` method
-2. Add sentinel errors to `internal/entity/errors.go`
-3. Define interface in `internal/repository/interfaces.go`
-4. Implement in `internal/repository/sqlite/<name>.go`
-5. Add migration in `internal/repository/sqlite/migrations.go`
-6. Create usecase in `internal/usecase/<name>.go`
-7. Create handler in `internal/handler/<name>.go` with `Routes()` method
-8. Mount in `cmd/server/main.go`
-9. Add seed data in `internal/repository/sqlite/seed.go`
+## Добавление новой сущности
+1. Создать `internal/entity/<name>.go` со структурой + метод `Validate()`
+2. Добавить sentinel-ошибки в `internal/entity/errors.go`
+3. Определить интерфейс в `internal/repository/interfaces.go`
+4. Реализовать в `internal/repository/sqlite/<name>.go`
+5. Добавить миграцию в `internal/repository/sqlite/migrations.go`
+6. Создать usecase в `internal/usecase/<name>.go`
+7. Создать handler в `internal/handler/<name>.go` с методом `Routes()`
+8. Подключить в `cmd/server/main.go`
+9. Добавить seed-данные в `internal/repository/sqlite/seed.go`
 
-## Error Handling
-- Repository returns `entity.ErrNotFound` for missing records (not `sql.ErrNoRows`)
-- UseCase validates before calling repository
-- Handler maps errors to HTTP status codes via `writeError()`
+## Обработка ошибок
+- Repository возвращает `entity.ErrNotFound` для отсутствующих записей (не `sql.ErrNoRows`)
+- UseCase валидирует данные перед вызовом repository
+- Handler маппит ошибки в HTTP-коды через `writeError()`
 
-## Database
-- SQLite with WAL journal mode, 5s busy timeout, foreign keys ON
-- MaxOpenConns=1 (SQLite single-writer)
-- Migrations are idempotent (CREATE TABLE IF NOT EXISTS)
+## База данных
+- SQLite с WAL journal mode, busy timeout 5 сек, foreign keys ON
+- MaxOpenConns=1 (SQLite — single-writer)
+- Миграции идемпотентны (CREATE TABLE IF NOT EXISTS)

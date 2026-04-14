@@ -1,6 +1,6 @@
 # Test Context — Bean & Brew Portal
 
-> **Last updated: 2026-04-13**
+> **Last updated: 2026-04-14**
 
 ## Project Domain
 Coffee shop e-commerce portal with 4 core entities:
@@ -36,7 +36,8 @@ Coffee shop e-commerce portal with 4 core entities:
 - SQLite in-memory (`:memory:`) — each test gets clean instance
 - No external dependencies (no network, no Docker)
 - Test run time: ~4 seconds total
-- 336 test functions, ~637 sub-tests (table-driven)
+- 336 test functions (`func Test*()`), ~637 sub-tests (`t.Run()` inside table-driven)
+- See `known_issues.md` for flaky tests and known limitations
 
 ## Test Coverage (2026-04-13)
 | Package | Coverage |
