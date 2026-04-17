@@ -5,6 +5,34 @@ globs: ["**/*"]
 
 # GitHub Issues Workflow
 
+## Инструмент: `gh` CLI / GitHub MCP
+
+Репозиторий: `nikita-rulenko/heisenbug-coffee-portal`.
+
+Основные команды `gh`:
+- `gh issue list --state all --limit N --json number,title,state,labels,comments,createdAt,updatedAt` — массовое чтение с метаданными.
+- `gh issue view N --json title,body,labels` — тело + чекбоксы.
+- `gh issue edit N --add-label "..."` / `--title "..."` / `--body "..."`.
+- `gh issue create --title "..." --body "..." --label "bug,test:api"`.
+- `gh issue comment N --body "..."`.
+- `gh issue close N --reason completed`.
+- `gh label list` — текущая таксономия меток.
+
+**Таксономия меток в этом репо** (на 2026-04-17):
+- `context:domain` / `context:pattern` — living docs (не закрывать).
+- `context:coverage` — цели по покрытию тестами.
+- `context:roadmap` — meta-трекеры / roadmap (#14).
+- `test:unit` / `test:integration` / `test:api` / `test:usecase` — уровень тестов в задаче.
+- Стандартные GitHub: `bug`, `enhancement`, `documentation`.
+
+**Тикет `#14`** — общий roadmap / meta-ticket (living-style, не закрывается), ссылается на актуальные open-задачи.
+
+## Комментарии: когда нужны, когда нет
+
+**Нужен комментарий:** реальное изменение кода по теме тикета (написаны тесты, исправлен баг, рефакторинг), закрытие тикета, найдено расхождение с MD/кодом.
+
+**НЕ нужен комментарий:** повторная верификация из онбординг-промта, если ничего не изменилось (прогон тестов без правки кода, «coverage совпадает с MD»). Такие прогоны — это диагностика, а не работа по тикету; они засоряют timeline и скрывают реальный прогресс.
+
 ## При начале сессии — анализ актуальности
 
 Перед началом любой работы **обязательно проверь актуальность контекста**:

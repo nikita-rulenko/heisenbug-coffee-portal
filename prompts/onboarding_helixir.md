@@ -24,7 +24,7 @@
 
 Порядок действий:
 1. Прочитай `AGENTS.md` (корень) — краткий обзор проекта
-2. Загрузи контекст из Helixir (user_id: "bench") через серию вызовов:
+2. Загрузи контекст из Helixir (user_id: "bench"; MCP-сервер в UI: `helixir-local`, для вызовов из агента Cursor — идентификатор **`user-helixir-local`**) через серию вызовов:
    - `search_memory` — "bean brew architecture", "test coverage", "known issues"
    - `search_reasoning_chain` — найди цепочки рассуждений от прошлых сессий
      (там могут быть готовые анализы: почему выбрана архитектура, почему тест flaky)
