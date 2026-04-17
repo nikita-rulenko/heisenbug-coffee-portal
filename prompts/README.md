@@ -41,6 +41,9 @@ memory_id, скрытые человеческие наблюдения. v3 пе
 
 Описания MCP-инструментов (сигнатуры, параметры, ограничения) вынесены
 в `.cursor/rules/*.mdc` — промты содержат только задачу онбординга.
+Phase «Код-верификация» во всех 4 промтах делегирована Anthropic Skill
+`verifying-test-coverage` (`.claude/skills/verifying-test-coverage/SKILL.md`)
+— это демо-материал «как Skills и Cursor rules дополняют друг друга».
 
 ## Как использовать
 

@@ -1,93 +1,73 @@
-# Индекс тестов — Bean & Brew Portal
+# Каталог тестов — Bean & Brew Portal
 
-> **Last updated: 2026-04-14**
+> **Last updated: 2026-04-17**
+
+Это **оглавление** тестов по группам, не реестр функций. Конкретные имена
+тестов смотри `grep -r 'TestXxx' internal/` или прямо в файлах. Числа
+функций обновляй только когда добавилась/удалилась группа (новый файл
+`*_test.go`), а не на каждую новую функцию.
 
 ## Сводка
-- **336 тестовых функций** — `func Test*()` в коде
-- **~637 прогонов в `-v`** — функции + sub-tests внутри table-driven (строки `=== RUN` в `go test -v`)
-- Запуск: `go test -v ./...` (флаг `-v` покажет sub-tests)
+- **336 тестовых функций**, **~637 прогонов с sub-tests** (`go test -v`)
+- Запуск: `go test ./... -count=1` · покрытие: `go test -cover ./...`
 - Coverage: entity 100% · usecase 93.6% · repository 77.5% · handler 67.0%
-- Известные проблемы и flaky тесты: см. `known_issues.md`
+- Известные баги, flaky, пробелы покрытия → `known_issues.md`
+- Паттерны и антипаттерны → `test-patterns.md`
 
-## Тестовые файлы
+## Слой entity (53 функции)
 
-### internal/entity/product_test.go
-| Тест | Тип | Покрывает |
-|------|-----|-----------|
-| TestUnitProductValidate | unit | Product.Validate() — name, price, category_id |
-| TestUnitProductApplyDiscount | unit | Product.ApplyDiscount() — 0%, 10%, 50%, 100%, negative, >100 |
+Чистые unit-тесты доменных правил, без БД и сети.
 
-### internal/entity/order_test.go
-| Тест | Тип | Покрывает |
-|------|-----|-----------|
-| TestUnitOrderValidate | unit | Order.Validate() — customer_id, items, quantity, product_id |
-| TestUnitOrderCalculateTotal | unit | Order.CalculateTotal() — несколько товаров |
-| TestUnitOrderCalculateTotalEmpty | unit | Order.CalculateTotal() — пустой список |
-| TestUnitOrderCanCancel | unit | Order.CanCancel() — все 4 статуса |
-| TestUnitOrderCanComplete | unit | Order.CanComplete() — все 4 статуса |
+- `product_test.go` / `product_extended_test.go` — `Product.Validate`, `ApplyDiscount` (граничные значения)
+- `order_test.go` / `order_extended_test.go` — `Order.Validate`, `CalculateTotal`, переходы статусов (`CanCancel`, `CanComplete`)
+- `news_test.go` / `news_extended_test.go` — `NewsItem.Validate`, `Summary` (UTF-8 через `[]rune`)
+- `category_test.go` — `Category.Validate`
 
-### internal/entity/news_test.go
-| Тест | Тип | Покрывает |
-|------|-----|-----------|
-| TestUnitNewsItemValidate | unit | NewsItem.Validate() — title, content |
-| TestUnitNewsItemSummary | unit | NewsItem.Summary() — обрезка, UTF-8 runes |
-| TestUnitCategoryValidate | unit | Category.Validate() — name, slug |
+## Слой repository/sqlite (80 функций)
 
-### internal/repository/sqlite/product_test.go
-| Тест | Тип | Покрывает |
-|------|-----|-----------|
-| TestIntegrationProductCRUD | integration | Create, GetByID, Update, Delete |
-| TestIntegrationProductList | integration | Список: все, по категории, пагинация |
-| TestIntegrationProductSearch | integration | LIKE-поиск по name/description |
-| TestIntegrationProductCount | integration | Count: все, по категории, несуществующая |
-| TestIntegrationProductDeleteNotFound | integration | Delete несуществующего продукта |
+Integration-тесты против реального `:memory:` SQLite через `setupTestDB(t)`.
 
-### internal/repository/sqlite/order_test.go
-| Тест | Тип | Покрывает |
-|------|-----|-----------|
-| TestIntegrationOrderCRUD | integration | Создание с items, GetByID с items |
-| TestIntegrationOrderStatusTransitions | integration | new→processing→completed |
-| TestIntegrationOrderListByCustomer | integration | Фильтр по customer_id, пагинация |
-| TestIntegrationOrderGetNotFound | integration | GetByID несуществующего заказа |
+- `product_test.go` / `product_extended_test.go` — CRUD, фильтр по категории, LIKE-поиск, пагинация, count, `DeleteNotFound`
+- `order_test.go` / `order_extended_test.go` — CRUD с items, статус-переходы, фильтр по customer_id, пагинация, `GetNotFound`
+- `news_test.go` / `news_extended_test.go` — CRUD, пагинация, edge cases
+- `category_test.go` / `category_extended_test.go` — CRUD, дубликат slug (см. #15), edge cases
+- `testhelper_test.go` — `setupTestDB` хелпер, без `Test*` функций
 
-### internal/handler/api_test.go
-| Тест | Тип | Покрывает |
-|------|-----|-----------|
-| TestAPICategoryCRUD | api | POST + GET /categories |
-| TestAPIProductCRUD | api | POST category → POST + GET /products |
-| TestAPIProductValidationError | api | 400 на пустое имя, отрицательную цену |
-| TestAPINewsCRUD | api | POST + GET /news |
-| TestAPIOrderFlow | api | Полный flow: category→product→order, проверка total |
-| TestAPIProductNotFound | api | 404 GET /products/99999 |
-| TestAPIOrderEmptyItems | api | 400 POST заказа с пустым items |
+## Слой usecase (97 функций)
 
-### internal/usecase/usecase_test.go
-| Тест | Тип | Покрывает |
-|------|-----|-----------|
-| TestUnitProductUCCreateValidatesCategory | usecase | Отклоняет несуществующую категорию |
-| TestUnitProductUCCreateValidatesProduct | usecase | Отклоняет пустое имя |
-| TestUnitProductUCListPagination | usecase | 25 продуктов, page 1=10, page 3=5 |
-| TestUnitOrderUCCreateSetsPrice | usecase | Цена из продукта, расчёт total |
-| TestUnitOrderUCCancelFlow | usecase | Cancel new → cancel cancelled = ошибка |
-| TestUnitOrderUCCompleteRequiresProcessing | usecase | Complete new = ошибка, process+complete = ok |
-| TestUnitNewsUCPagination | usecase | 15 новостей, page 1 = 5 элементов |
+Unit-тесты бизнес-логики через реальный SQLite-слой (быстрее моков).
 
-## Зависимости между тестами
-- Integration тесты зависят от `setupTestDB()` → `migrations.go`
-- API тесты зависят от `setupTestServer()` → полная связка handlers
-- UseCase тесты используют реальный SQLite через слой usecase
-- Все DB тесты изолированы (отдельный `:memory:` на каждый тест)
+- `usecase_test.go` — базовые сценарии всех use-case'ов (validate, pagination, status flow)
+- `product_uc_extended_test.go` — расширенные кейсы Product UC
+- `order_uc_extended_test.go` — расширенные кейсы Order UC (cancel, complete, цена из продукта)
+- `news_uc_extended_test.go` — расширенные кейсы News UC
+- `category_uc_extended_test.go` — расширенные кейсы Category UC
 
-## Расширенные тесты (добавлены 2026-04)
-После масштабирования с 62 → 336 тестовых функций добавлены файлы `*_extended_test.go`:
-- `internal/entity/` — расширенная валидация и edge cases для product, order, news
-- `internal/repository/sqlite/` — расширенные CRUD, пагинация, edge cases для всех сущностей
-- `internal/handler/` — расширенные API тесты для category, product, order, news
-- `internal/usecase/` — расширенные UC тесты для category, product, order, news
+## Слой handler — API (106 функций)
 
-## Пробелы в покрытии
-- Нет тестов для HTML page handlers (PageHandler.Home, Catalog, NewsFeed)
-- Нет тестов для корректности seed-данных
-- Нет E2E browser тестов
-- Нет тестов производительности/нагрузки
-- Нет тестов конкурентного доступа
+API-тесты через `setupTestServer(t)` — полная связка router → handler → usecase → repo.
+
+- `api_test.go` — flow-тесты: CRUD каждой сущности, валидация (400), not found (404), полный заказ-flow
+- `category_api_extended_test.go` — расширенные API-кейсы категорий
+- `product_api_extended_test.go` — расширенные API-кейсы продуктов
+- `order_api_extended_test.go` — расширенные API-кейсы заказов
+- `news_api_extended_test.go` — расширенные API-кейсы новостей
+
+## Слой handler — HTML pages и auth (нет тестов)
+
+- `pages.go` (16 методов: Home, Catalog, NewsFeed, Cart, Checkout, OrderConfirmation, SearchFragment, AdminNews/Create/Delete, Login*, Logout) — **0% покрытия**, см. #10
+- `auth.go` (AuthMiddleware, AdminOnly, GetUsername, IsAdmin) — **0% покрытия**, см. #10
+
+## Зависимости и изоляция
+
+- Каждый integration/API-тест получает **свой** `:memory:` SQLite — нет shared state
+- `setupTestDB(t)` поднимает миграции из `migrations.go`
+- `setupTestServer(t)` собирает chain handlers с реальным usecase и репозиторием
+- `t.Parallel()` сейчас **нигде** не используется (см. #11)
+
+## Что в каталоге НЕТ (намеренно)
+
+- Имён конкретных функций — это шум, ищи `grep`
+- Sub-test names — `t.Run("case", ...)` живут в коде
+- Багов и flaky — это в `known_issues.md`
+- Coverage по конкретному файлу — это `go test -cover ./...`
