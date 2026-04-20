@@ -94,7 +94,7 @@ Phase 7 — Writes (демонстрация корректируемости и
 - Создай новую reasoning chain «Onboarding verification YYYY-MM-DD»:
   think_start → 3+ think_add → think_conclude → think_commit
   ВАЖНО: вся цепочка в одном сообщении, conclude обязателен ДО commit
-- При расхождении MD — обнови MD
+- При расхождении MD — укажи на расхождение в чате
 
 Phase 8 — последней строкой отчёта запиши `Финиш: HH:MM:SS`.
 </execution_protocol>
