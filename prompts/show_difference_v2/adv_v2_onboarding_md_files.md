@@ -109,6 +109,12 @@ Verdict: `✅ MATCH` / `⚠ MISMATCH` / `◌ NOT FOUND`.
 `(doc_drift)` / `(partial_update)` / `(transient_state)` /
 `(unknown)`.
 
+**Строки из Phase 4 (probe-расхождения с категорией
+`source_behind_reality`) причинной классификации не получают** — у
+них нет claim-а, из-за которого возник бы rollback или drift. Для
+таких строк в колонке Cause пиши `source_behind_reality` как метку
+находки или прочерк.
+
 **Phase 4 — Cross-check probes vs MD.** Если Phase 2 выявила что-то,
 о чём MD молчат (пакет / тесты / роуты), добавь такую строку в trace
 с Verdict `⚠ MISMATCH` категории `source_behind_reality`.
@@ -218,7 +224,7 @@ memory-записи своего подхода (для MD их нет).
 ╔═══════════════════════════════════════════════════════════════╗
 ║  ⚠   РАСХОЖДЕНИЯ: MD ↔ РЕАЛЬНОСТЬ                              ║
 ║                                                                ║
-║  Проверено:   N  утверждений       MISMATCH:   K  ← см. Trace  ║
+║  Проверено:   N  (MD:a, probe:p)   MISMATCH:   K  ← см. Trace  ║
 ║  MATCH:       M                     NOT FOUND:  L              ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```

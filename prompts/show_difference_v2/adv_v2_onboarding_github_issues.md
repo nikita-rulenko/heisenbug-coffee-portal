@@ -125,6 +125,12 @@ Verdict: `✅ MATCH` / `⚠ MISMATCH` / `◌ NOT FOUND`.
 `(rolled_back_fix)` / `(doc_drift)` / `(partial_update)` /
 `(transient_state)` / `(unknown)`.
 
+**Строки из Phase 4 (probe-расхождения с категорией
+`source_behind_reality`) причинной классификации не получают** — у
+них нет claim-а, по отношению к которому мог бы быть rollback или
+drift. Для таких строк пиши `source_behind_reality` как метку
+находки или прочерк.
+
 **Phase 4 — Cross-check probes.** Если Phase 2 показала что-то,
 о чём ни MD, ни Issues не говорят, добавь строку в trace с
 Verdict `⚠ MISMATCH` категории `source_behind_reality`.
@@ -238,7 +244,7 @@ CLI / MCP, которая помешала выполнить онбординг
 ╔═══════════════════════════════════════════════════════════════╗
 ║  ⚠   РАСХОЖДЕНИЯ: MD/Issues ↔ РЕАЛЬНОСТЬ                       ║
 ║                                                                ║
-║  Проверено:   N  (MD:a, Issues:b)   MISMATCH:   K  ← Trace     ║
+║  Проверено:   N  (MD:a, Issues:b, probe:p)   MISMATCH:   K     ║
 ║  MATCH:       M                     NOT FOUND:  L              ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```

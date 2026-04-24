@@ -34,7 +34,7 @@ Search / navigation:
 - `list_memories(user_id)` — полный перечень.
 
 Write / correction:
-- `add_memory(content, user_id, …)` — новая запись.
+- `add_memory(message, user_id, agent_id?)` — новая запись. **Поле называется `message`**, не `content` (подтверждено прогоном 2026-04-24; ранее в этом правиле было указано неверно).
 - `update_memory(memory_id, …)` — **работает** (в отличие от локального Mem0 MCP).
 - `delete_memory(memory_id, user_id)` — предпочти `update_memory`.
 
