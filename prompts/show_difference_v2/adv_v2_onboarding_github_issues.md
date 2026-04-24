@@ -102,6 +102,22 @@ Verdict: `✅ MATCH` / `⚠ MISMATCH` / `◌ NOT FOUND`.
 проверяемую цифру — обязательно проверь, соответствует ли факт AC.
 Закрытый ≠ сделанный.
 
+**Phase 3.5 — Rollback-детекция.** Для каждой MISMATCH-строки
+проверь: «это `doc_drift` (тикет отстал от кода) или предыдущий
+прогон уже чинил это, а потом откатили (`rolled_back_fix`)?» Сигналы
+у GH Issues — специфичные:
+- Тикет `closed`, но AC по коду не выполнен → классический
+  «пролечил и откатил» (closed ≠ done). Уже разбиралось, но в Cause
+  это именно `rolled_back_fix`.
+- В комментариях тикета есть «fixed in commit abc», а `git log`
+  показывает последующий revert.
+- В связанном коммите есть слово `revert` / `rollback`.
+- `git log --oneline -20 -- <файл>` показывает пару commit → revert.
+
+Пометь в «Результат» в скобках: `(rolled_back_fix)` /
+`(doc_drift)` / `(unknown)`. Полный причинный разбор — прерогатива
+Helixir-подхода.
+
 **Phase 4 — Cross-check probes.** Если Phase 2 показала что-то,
 о чём ни MD, ни Issues не говорят, добавь строку в trace с
 Verdict `⚠ MISMATCH` категории `source_behind_reality`.
