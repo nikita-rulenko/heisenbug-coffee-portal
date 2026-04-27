@@ -1,79 +1,94 @@
-# Bean & Brew — Портал кофейни
+# AGENTS.md — Bean & Brew
 
-> **Last updated: 2026-04-14**
+> Инструкции агенту, общие для ЛЮБОГО подхода к контексту
+> (MD / Mem0 / Helixir / GitHub Issues). Факты о проекте — в
+> `docs/project_overview.md`. Методология онбординга — в
+> skill `.claude/skills/qa-onboarding/`.
 
-## Обзор
-Go веб-приложение для кофейни: каталог продуктов, лента новостей, управление заказами.
-Создано для исследования Heisenbug 2026 по управлению AI-контекстом при тестировании.
+## Куда смотреть
 
-## Архитектура
-Clean Architecture, 4 слоя:
-- `internal/entity/` — доменные модели (Product, Category, NewsItem, Order) + валидация + ошибки
-- `internal/usecase/` — бизнес-логика, зависит только от entity + интерфейсов repository
-- `internal/repository/` — интерфейсы; `sqlite/` — реализация на SQLite
-- `internal/handler/` — HTTP-обработчики (JSON API + HTML-страницы)
-
-## Стек технологий
-- Go 1.25, Chi router, html/template + htmx, SQLite (WAL mode)
-- Без ORM — raw SQL через `database/sql`
-
-## Ключевые файлы
-- `cmd/server/main.go` — точка входа, wiring
-- `internal/repository/sqlite/migrations.go` — схема БД
-- `internal/repository/sqlite/seed.go` — демо-данные (5 категорий, 17 продуктов, 3 новости)
-
-## API
-Все JSON-эндпоинты под `/api/v1/`:
-- `GET/POST /products`, `GET/PUT/DELETE /products/{id}`, `GET /products/search?q=`
-- `GET/POST /categories`, `GET/PUT/DELETE /categories/{id}`
-- `GET/POST /news`, `GET/PUT/DELETE /news/{id}`
-- `POST /orders`, `GET /orders/{id}`, `GET /orders/customer/{customerID}`
-- `POST /orders/{id}/cancel`, `POST /orders/{id}/process`, `POST /orders/{id}/complete`
-
-## Тестирование
-336 тестовых функций (~637 прогонов с sub-tests) на 4 уровнях — запуск `go test ./...`.
-> **Примечание:** 336 = количество `func Test*()`; ~637 = строки `=== RUN` в `go test -v` (функции + sub-tests через `t.Run()`). Подробнее в `docs/known_issues.md`.
-- **Unit** (`internal/entity/*_test.go`): валидация, ApplyDiscount, Summary, CalculateTotal, CanCancel/CanComplete
-- **Integration** (`internal/repository/sqlite/*_test.go`): CRUD, поиск, пагинация, переходы статусов
-- **API** (`internal/handler/*_test.go`): полные HTTP-эндпоинты через httptest
-- **UseCase** (`internal/usecase/*_test.go`): бизнес-логика с реальным in-memory SQLite
-
-### Покрытие тестами (2026-04-14)
-| Слой | Coverage |
-|------|----------|
-| entity | 100.0% |
-| usecase | 93.6% |
-| repository/sqlite | 77.5% |
-| handler | 67.0% |
-| cmd/server | 0.0% (main — не тестируется) |
-
-Проверить: `go test -cover ./...`
-
-## Источники контекста
-- **MD файлы**: этот файл + `docs/test-index.md`, `docs/test-context.md`, `docs/test-patterns.md`, `docs/known_issues.md`
-- **Cursor rules**: `.cursor/rules/architecture.mdc`, `testing.mdc`, `github.mdc`, `mem0.mdc`, `helixir.mdc`
-- **Промты онбординга**: `prompts/` — 4 промта для разных подходов к контексту
-- **GitHub Issues**: [issues](https://github.com/nikita-rulenko/heisenbug-coffee-portal/issues) — трекинг работы через MCP
-
-## Конвенции
-- Именование тестов: `TestUnit*`, `TestIntegration*`, `TestAPI*`
-- Предпочтительно table-driven тесты
-- In-memory SQLite (`:memory:`) для изоляции тестов
-- Хелпер `setupTestDB(t)` в `sqlite/testhelper_test.go`
-- **GitHub Issues**: при работе по тикету оставляй комментарии о ходе работы (см. `.cursor/rules/github.mdc`)
+- **Факты о проекте** (архитектура, стек, API, тесты, coverage):
+  `docs/project_overview.md`, `docs/test-context.md`,
+  `docs/test-index.md`, `docs/test-patterns.md`,
+  `docs/known_issues.md`.
+- **Правила работы с инструментами**: `.cursor/rules/` — по файлу на
+  инструмент (`architecture.mdc`, `testing.mdc`, `github.mdc`,
+  `mem0.mdc`, `helixir.mdc`).
+- **Роль и методология QA-онбординга**:
+  `.claude/skills/qa-onboarding/SKILL.md` + `references/<подход>.md`.
+- **Промты онбординга** (4 подхода):
+  `prompts/show_difference_v2/*_onb.md`
+  (`md_onb.md`, `mem0_onb.md`, `helixir_onb.md`, `git_iss_onb.md`).
 
 ## Как говорить с пользователем
 
-Правило для ЛЮБОГО подхода (MD / GitHub Issues / Mem0 / Helixir): в тексте ответа пользователю не должно быть машинных терминов и внутренних идентификаторов без человеческого перевода. Пользователь инженер, но не обязан помнить таксономию конкретного MCP-сервера.
+Правило для ЛЮБОГО подхода: в тексте ответа пользователю не должно
+быть машинных терминов и внутренних идентификаторов без человеческого
+перевода. Пользователь инженер, но не обязан помнить таксономию
+конкретного MCP-сервера.
 
 Что переводить перед выдачей:
-- **Helixir рёбра графа**: `BECAUSE` → «потому что», `IMPLIES` → «следует из», `SUPPORTS` → «согласуется с», `CONTRADICTS` → «расходится с» / «найдено противоречие между X и Y».
-- **Идентификаторы памяти** (`mem_1f0be555c860`, `memory_id`, `user_id: bench`) — не в основной текст, только в Appendix, если нужна воспроизводимость.
-- **Label-синтаксис GitHub** (`context:coverage`, `area:testing`) — переводи: «метка про coverage», «область тестирования».
-- **XML-теги промта** (`<role>`, `<methodology>`, `<trace>`) — никогда не всплывают в ответе, это вход, не выход.
-- **Имена MCP-инструментов** (`search_by_concept`, `think_commit`) — допустимы, если обсуждается именно инструмент, иначе переводи действие: «поиск по концепту», «фиксация цепочки рассуждения».
-- **Категории-метки** (`rolled_back_fix`, `doc_drift`, `stale_graph`, `source_behind_reality`, `stale_memory` и т.п.) — это *данные*, как имя колонки в таблице. Метку оставляй как есть, не заменяй пересказом, иначе теряется идентичность и callout-арифметика ломается. Рядом с первым упоминанием дай короткую сноску-перевод: «`rolled_back_fix` — прошлая сессия чинила, потом откатили». В табличных/callout-ячейках — только метка, без длинных фраз.
 
-Эмпирика: пиши так, как будто пересказываешь коллеге за кофе. Если фраза звучит как JSON-поле — перепиши.
+- **Helixir рёбра графа**: `BECAUSE` → «потому что», `IMPLIES` →
+  «следует из», `SUPPORTS` → «согласуется с», `CONTRADICTS` →
+  «расходится с» / «найдено противоречие между X и Y».
+- **Идентификаторы памяти** (`mem_1f0be555c860`, `memory_id`,
+  `user_id: bench`) — не в основной текст, только в Appendix, если
+  нужна воспроизводимость.
+- **Label-синтаксис GitHub** (`context:coverage`, `area:testing`) —
+  переводи: «метка про coverage», «область тестирования».
+- **XML-теги промта** (`<role>`, `<task>`, `<instructions>`) —
+  никогда не всплывают в ответе. Это вход, не выход.
+- **Имена MCP-инструментов** (`search_by_concept`, `think_commit`) —
+  допустимы, если обсуждается именно инструмент; иначе переводи
+  действие: «поиск по концепту», «фиксация цепочки рассуждения».
 
-Частные случаи (Helixir-специфичные) — в `.cursor/rules/helixir.mdc`, но правило верхнеуровневое и действует для всех четырёх подходов.
+Эмпирика: пиши так, как будто пересказываешь коллеге за кофе. Если
+фраза звучит как JSON-поле — перепиши.
+
+Частные случаи:
+
+- Helixir-специфичные термины (рёбра графа, `memory_id`) — в
+  `.cursor/rules/helixir.mdc`.
+- Категории причин расхождения (`rolled_back_fix`, `doc_drift`,
+  `partial_update`, `transient_state`, `unknown`,
+  `source_behind_reality`) — в skill `qa-onboarding`. Метка в
+  trace/callout канонична, человеческая расшифровка — рядом, не
+  вместо.
+
+## Дисциплина «источник не истина»
+
+Документация / память / тикеты — это подсказка. Истина — рабочее
+дерево: `go test -cover ./...`, `grep`, `Read`, `ls`, `git log`.
+Ни одна цифра, имя файла, счётчик или имя функции из источника не
+идёт в отчёт без сверки с реальным состоянием кода.
+
+Если найдено расхождение — не чини источник на лету. Это ломает
+бенчмарк: следующий подход увидит уже прибранную картину и пропустит
+несоответствие. Правки кладутся в раздел «Что требует правки»
+итогового отчёта и применяются отдельной сессией или тикетом.
+
+Частные writes-разрешения подхода (Mem0 `add_memory`, Helixir
+FastThink и т.п.) — в reference-файле соответствующего подхода в
+skill `qa-onboarding`.
+
+## Reply discipline
+
+Только для задач, где формат отчёта задан (онбординг, verifying-test-coverage):
+
+- **Первая строка ответа** — `Старт: HH:MM:SS`. До неё ничего: ни
+  преамбулы, ни «ниже отчёт».
+- **Последняя содержательная строка** — `Финиш: HH:MM:SS`. После
+  неё допустим Appendix с заметками о среде.
+- **Формат времени в метриках**: `Время выполнения онбординга Xm Ys`.
+- **Числа в отчёте** — со ссылкой `(trace #N)` на строку trace-таблицы
+  (см. skill `qa-onboarding`).
+
+Для свободных разговоров с пользователем (обсуждение, планирование,
+вопросы) это не применяется — просто отвечай по делу.
+
+## Конвенции коммитов и тикетов
+
+При работе по тикету оставляй комментарии о ходе работы (см.
+`.cursor/rules/github.mdc`). Коммиты не делай без явного запроса
+пользователя.
