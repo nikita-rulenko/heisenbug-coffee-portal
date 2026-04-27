@@ -160,3 +160,16 @@ func TestIntegrationCategoryCreateManyVerifyCount(t *testing.T) {
 		t.Errorf("count = %d, want 15", len(list))
 	}
 }
+
+func TestIntegrationCategoryCreateDuplicateSlugReturnsError(t *testing.T) {
+	db := setupTestDB(t)
+	repo := sqliteRepo.NewCategoryRepo(db)
+	ctx := context.Background()
+
+	if err := repo.Create(ctx, &entity.Category{Name: "A", Slug: "dup"}); err != nil {
+		t.Fatalf("first Create: %v", err)
+	}
+	if err := repo.Create(ctx, &entity.Category{Name: "B", Slug: "dup"}); err == nil {
+		t.Fatal("second Create with same slug: want error")
+	}
+}
