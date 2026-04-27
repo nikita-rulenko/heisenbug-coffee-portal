@@ -208,3 +208,41 @@ func TestIntegrationNewsListOrderConsistency(t *testing.T) {
 		}
 	}
 }
+
+func TestIntegrationNewsCreatePreservesExplicitPublishedAt(t *testing.T) {
+	db := setupTestDB(t)
+	repo := sqliteRepo.NewNewsRepo(db)
+	ctx := context.Background()
+
+	want := time.Date(2023, 11, 15, 9, 30, 0, 0, time.UTC)
+	n := &entity.NewsItem{Title: "T", Content: "C", Author: "A", PublishedAt: want}
+	if err := repo.Create(ctx, n); err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	got, err := repo.GetByID(ctx, n.ID)
+	if err != nil {
+		t.Fatalf("GetByID: %v", err)
+	}
+	if !got.PublishedAt.Equal(want) {
+		t.Errorf("PublishedAt = %v, want %v", got.PublishedAt, want)
+	}
+}
+
+func TestIntegrationNewsListLimitZeroReturnsEmpty(t *testing.T) {
+	db := setupTestDB(t)
+	repo := sqliteRepo.NewNewsRepo(db)
+	ctx := context.Background()
+
+	for range 3 {
+		if err := repo.Create(ctx, &entity.NewsItem{Title: "T", Content: "C"}); err != nil {
+			t.Fatalf("Create: %v", err)
+		}
+	}
+	items, err := repo.List(ctx, 0, 0)
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(items) != 0 {
+		t.Errorf("limit 0: len = %d, want 0", len(items))
+	}
+}
